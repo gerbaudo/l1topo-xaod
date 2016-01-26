@@ -1,0 +1,12 @@
+*~
+*.d
+*.so
+*.pyc
+*.log
+*.root
+*cxx_ACLiC_dict*
+.RootCoreBin
+RootCoreBin/
+MuCTPIPhase0Upgrade/
+rcSetup.csh
+rcSetup.sh
