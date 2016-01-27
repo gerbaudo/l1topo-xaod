@@ -9,7 +9,7 @@ ROOT.gROOT.Macro( '$ROOTCOREDIR/scripts/load_packages.C' )
 #ROOT.gROOT.ProcessLine(".L L1MuonRoI_cxx.so")
 ROOT.gROOT.LoadMacro( "L1MuonRoI.cxx+" )
 
-# Initialize the xAOD infrastructure: 
+# Initialize the xAOD infrastructure:
 if(not ROOT.xAOD.Init().isSuccess()): print "Failed xAOD.Init()"
 
 inputFiles = sys.argv[1].split(',')
@@ -55,12 +55,12 @@ trigList = [
     "HLT_2mu14",
     "HLT_2mu10",
     "HLT_mu18_mu8noL1", "HLT_mu18_2mu4noL1",
-    
+
     "HLT_3mu4",
     "HLT_mu4_2mu6",
     "HLT_3mu6",
     "HLT_3mu6_msonly",
-    "HLT_3mu4_bTau", "HLT_3mu6_bTau", 
+    "HLT_3mu4_bTau", "HLT_3mu6_bTau",
 
     "HLT_mu20_msonly_mu6noL1_msonly_nscan05",
     "HLT_mu20_mu6noL1_nscan03",
@@ -121,18 +121,61 @@ tOut.Branch('recotype',  recotype  )
 ################################################################
 
 print( "Number of input events: %s" % t.GetEntries() )
-for entry in xrange( t.GetEntries() ):
+numEntriesToProcess = min([10, t.GetEntries()])
+print("About to process %d entries" % numEntriesToProcess)
+
+def get_l1met_p4(l1met):
+    mev2gev = 1.0E-3
+    metx = l1met.exMiss()
+    mety = l1met.eyMiss()
+    met = l1met.energyT()
+    metp4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
+    print "met from input: ",l1met.energyT()
+    print "met computed: ",sqrt(metx*metx + mety*mety)
+    metp4.SetPxPyPzE(metx*mev2gev, mety*mev2gev, 0.0, met*mev2gev)
+    return metp4
+
+for entry in xrange(numEntriesToProcess):
     t.GetEntry( entry )
     HLT.setEvent(t)
     emulated = HLT.emulateDecision("L1_LFV-MU")
-    
+
     eventNumber[0] = t.EventInfo.eventNumber()
     runNumber[0] = t.EventInfo.runNumber()
+    l1met = t.LVL1EnergySumRoI
+    l1metp4 = get_l1met_p4(l1met)
+    l1jets = t.LVL1JetRoIs
+    print("%d / %d" % (runNumber[0], eventNumber[0]))
+    if runNumber[0]!=287924 or eventNumber[0]!=178424911:
+        continue
+    # met->Ex() << "  " << met->Ey() << "  " << met->Et()
+    print("l1met: ex %.2f ey %2.f et %2.f" % (l1met.exMiss(), l1met.eyMiss(), l1metp4.Et()))
+    for iJet, l1jet in enumerate(l1jets):
+        # format from TopoInputEvent::dump()
+        # Et1 Et2 eta phi etaDouble phiDouble
+        print("l1jet[%d]: et8x8 %.2f et4x4 %.2f eta %.2f phi %.2f"%
+              (iJet, l1jet.et8x8(), l1jet.et4x4(), l1jet.eta(), l1jet.phi()))
+
+    l1emtaus= t.LVL1EmTauRoIs
+    for iEmtau, l1emtau in enumerate(l1emtaus): # todo check duplication
+        # format from TopoInputEvent::dump()
+        # Et isolation eta phi etaDouble phiDouble
+        # no etaDouble, phiDouble
+        # http://acode-browser.usatlas.bnl.gov/lxr/source/atlas/Event/xAOD/xAODTrigger/xAODTrigger/versions/EmTauRoI_v2.h
+        print("l1emtau[%d]: et %.2f emIso %.2f eta %.2f phi %.2f" %
+              (iEmtau, l1emtau.eT(), l1emtau.emIsol(), l1emtau.eta(), l1emtau.phi()))
+        # Q for xAOD devs & Joerg:
+        # - there is a factor of 2 between the RAW values and the xAOD ones (both
+        # - the type of l1emtau.isol() is 'str' why?
+        # - the RAW iso() seems to be 2*xAOD::emIsol()
+        # Q for myself:
+        # - try to figur out the int/float rounding issues (due to python? to xAOD conversion?)
+
     for trig in trigList :
         passTrig[trig][0] = 0
-        if  ROOT.trigDecTool.isPassed( trig ) : passTrig[trig][0] = 1 
+        if  ROOT.trigDecTool.isPassed( trig ) : passTrig[trig][0] = 1
     passTrig["L1_LFV-MU-topo"][0] = emulated
-        
+
     l1muons.clear()
     for imu in xrange(len(t.LVL1MuonRoIs)) :
         mu = t.LVL1MuonRoIs[imu]
@@ -159,7 +202,7 @@ for entry in xrange( t.GetEntries() ):
 
     pts = []
     for imu in xrange(len(t.Muons)) :
-        mu = t.Muons[imu] 
+        mu = t.Muons[imu]
         mutype = 0
         if mu.muonType() == ROOT.xAOD.Muon.Combined :
             mutype = 0
@@ -187,7 +230,7 @@ for entry in xrange( t.GetEntries() ):
     recomuonsn[0] = len(recomuons)
 
     tOut.Fill()
-    
+
 print "Write out trig ntuple ", fOut.GetName() , " with ", tOut.GetEntries(), " events"
 fOut.Write()
 fOut.Close()
