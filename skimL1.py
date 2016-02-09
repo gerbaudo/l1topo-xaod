@@ -19,6 +19,9 @@ if len(fileName) == 0 :
     print "Please provide input"
     exit()
 
+process_all_events = True
+filter_events = False
+verbose = False
 
 ######### Read input tree
 
@@ -121,8 +124,9 @@ tOut.Branch('recotype',  recotype  )
 ################################################################
 
 print( "Number of input events: %s" % t.GetEntries() )
-numEntriesToProcess = min([10, t.GetEntries()])
+numEntriesToProcess = max([10, t.GetEntries()]) if process_all_events else min([10, t.GetEntries()])
 print("About to process %d entries" % numEntriesToProcess)
+mev2gev=1.0E-3
 
 def get_l1met_p4(l1met):
     mev2gev = 1.0E-3
@@ -130,10 +134,16 @@ def get_l1met_p4(l1met):
     mety = l1met.eyMiss()
     met = l1met.energyT()
     metp4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
-    print "met from input: ",l1met.energyT()
-    print "met computed: ",sqrt(metx*metx + mety*mety)
+    if verbose:
+        print "met from input: ",l1met.energyT()
+        print "met computed: ",sqrt(metx*metx + mety*mety)
     metp4.SetPxPyPzE(metx*mev2gev, mety*mev2gev, 0.0, met*mev2gev)
     return metp4
+
+def skip_run_event(r, e):
+    return (r!=287924
+            or
+            e not in [178424911,178424911,178496695,178662528,178432898,178525775])
 
 for entry in xrange(numEntriesToProcess):
     t.GetEntry( entry )
@@ -145,25 +155,41 @@ for entry in xrange(numEntriesToProcess):
     l1met = t.LVL1EnergySumRoI
     l1metp4 = get_l1met_p4(l1met)
     l1jets = t.LVL1JetRoIs
-    print("%d / %d" % (runNumber[0], eventNumber[0]))
-    if runNumber[0]!=287924 or eventNumber[0]!=178424911:
+    eventN = t.EventInfo.eventNumber()
+    if filter_events and skip_run_event(runNumber[0], eventN):
         continue
+    print("%d / %d" % (runNumber[0], eventNumber[0]))
     # met->Ex() << "  " << met->Ey() << "  " << met->Et()
-    print("l1met: ex %.2f ey %2.f et %2.f" % (l1met.exMiss(), l1met.eyMiss(), l1metp4.Et()))
-    for iJet, l1jet in enumerate(l1jets):
-        # format from TopoInputEvent::dump()
-        # Et1 Et2 eta phi etaDouble phiDouble
-        print("l1jet[%d]: et8x8 %.2f et4x4 %.2f eta %.2f phi %.2f"%
-              (iJet, l1jet.et8x8(), l1jet.et4x4(), l1jet.eta(), l1jet.phi()))
+    # print("l1met: ex %.2f ey %2.f et %2.f" % (l1met.exMiss(), l1met.eyMiss(), l1metp4.Et()))
+    if verbose:
+        print("l1met: ex\tey\tet")
+        print("       %d\t%d\t%4.f" % (int(mev2gev*l1met.exMiss()),
+                                       int(mev2gev*l1met.eyMiss()),
+                                       l1metp4.Et()))
+        print("l1jet[%d]: et8x8\tet4x4\teta\tphi"%len(l1jets))
+        for iJet, l1jet in enumerate(l1jets):
+            # format from TopoInputEvent::dump()
+            # Et1 Et2 eta phi etaDouble phiDouble
+            # print("l1jet[%d]: et8x8 %.2f et4x4 %.2f eta %.2f phi %.2f"%
+            #       (iJet, l1jet.et8x8(), l1jet.et4x4(), l1jet.eta(), l1jet.phi()))
+            print("[%03d]: %d\t%d\t%d\t%d"%(iJet,
+                                            int(mev2gev*l1jet.et8x8()), int(mev2gev*l1jet.et4x4()),
+                                            int(10*l1jet.eta()), int(10*l1jet.phi())))
 
     l1emtaus= t.LVL1EmTauRoIs
-    for iEmtau, l1emtau in enumerate(l1emtaus): # todo check duplication
-        # format from TopoInputEvent::dump()
-        # Et isolation eta phi etaDouble phiDouble
-        # no etaDouble, phiDouble
-        # http://acode-browser.usatlas.bnl.gov/lxr/source/atlas/Event/xAOD/xAODTrigger/xAODTrigger/versions/EmTauRoI_v2.h
-        print("l1emtau[%d]: et %.2f emIso %.2f eta %.2f phi %.2f" %
-              (iEmtau, l1emtau.eT(), l1emtau.emIsol(), l1emtau.eta(), l1emtau.phi()))
+    if verbose:
+        print("jets[%d]: et emIso eta phi"%len(l1emtaus))
+        for iEmtau, l1emtau in enumerate(l1emtaus): # todo check duplication
+            # format from TopoInputEvent::dump()
+            # Et isolation eta phi etaDouble phiDouble
+            # no etaDouble, phiDouble
+            # http://acode-browser.usatlas.bnl.gov/lxr/source/atlas/Event/xAOD/xAODTrigger/xAODTrigger/versions/EmTauRoI_v2.h
+            # print("l1emtau[%d]: et %.2f emIso %.2f eta %.2f phi %.2f" %
+            #       (iEmtau, l1emtau.eT(), l1emtau.emIsol(), l1emtau.eta(), l1emtau.phi()))
+            print("[%03d]: %d\t%d\t%d\t%d" %
+                  (iEmtau,
+                   int(mev2gev*l1emtau.eT()), int(mev2gev*l1emtau.emIsol()),
+                   int(10*l1emtau.eta()), int(10*l1emtau.phi())))
         # Q for xAOD devs & Joerg:
         # - there is a factor of 2 between the RAW values and the xAOD ones (both
         # - the type of l1emtau.isol() is 'str' why?
