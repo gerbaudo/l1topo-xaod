@@ -19,7 +19,7 @@ if len(fileName) == 0 :
     print "Please provide input"
     exit()
 
-process_all_events = True
+process_all_events = False
 filter_events = False
 verbose = False
 
@@ -50,33 +50,34 @@ ROOT.gROOT.ProcessLine(
 
 
 trigList = [
-    "L1_MU4","L1_MU6","L1_MU10","L1_MU11","L1_MU15","L1_MU20",
-    "L1_2MU4","L1_2MU6","L1_2MU10","L1_MU10_2MU4","L1_MU10_2MU6","L1_LFV-MU",
+    "L1_MU4","L1_MU6",
+    # "L1_MU10","L1_MU11","L1_MU15","L1_MU20",
+    # "L1_2MU4","L1_2MU6","L1_2MU10","L1_MU10_2MU4","L1_MU10_2MU6","L1_LFV-MU",
     "L1_LFV-MU-topo",
-    "L1_3MU6","L1_3MU4","L1_MU6_3MU4",
-    "HLT_mu4",  "HLT_mu6", "HLT_mu10", "HLT_mu18","HLT_mu24",
-    "HLT_2mu14",
-    "HLT_2mu10",
-    "HLT_mu18_mu8noL1", "HLT_mu18_2mu4noL1",
+    # "L1_3MU6","L1_3MU4","L1_MU6_3MU4",
+    # "HLT_mu4",  "HLT_mu6", "HLT_mu10", "HLT_mu18","HLT_mu24",
+    # "HLT_2mu14",
+    # "HLT_2mu10",
+    # "HLT_mu18_mu8noL1", "HLT_mu18_2mu4noL1",
 
-    "HLT_3mu4",
-    "HLT_mu4_2mu6",
-    "HLT_3mu6",
-    "HLT_3mu6_msonly",
-    "HLT_3mu4_bTau", "HLT_3mu6_bTau",
+    # "HLT_3mu4",
+    # "HLT_mu4_2mu6",
+    # "HLT_3mu6",
+    # "HLT_3mu6_msonly",
+    # "HLT_3mu4_bTau", "HLT_3mu6_bTau",
 
-    "HLT_mu20_msonly_mu6noL1_msonly_nscan05",
-    "HLT_mu20_mu6noL1_nscan03",
+    # "HLT_mu20_msonly_mu6noL1_msonly_nscan05",
+    # "HLT_mu20_mu6noL1_nscan03",
 
-    #"HLT_mu11_2mu4noL1_nscan03",
-    "HLT_mu11_2mu4noL1_nscan03_L1MU11_2MU6",
-    'HLT_mu11_llns_2mu4noL1_nscan03_L1MU11_2MU6',
-    "HLT_mu11_L1MU10_2mu4noL1_nscan03_L1MU10_2MU6",
+    # #"HLT_mu11_2mu4noL1_nscan03",
+    # "HLT_mu11_2mu4noL1_nscan03_L1MU11_2MU6",
+    # 'HLT_mu11_llns_2mu4noL1_nscan03_L1MU11_2MU6',
+    # "HLT_mu11_L1MU10_2mu4noL1_nscan03_L1MU10_2MU6",
 
-    "HLT_noalg_eb_L1PhysicsLow_noPS", #L1_2MU6 , L1_3MU4, L1_MU20,
-    "HLT_noalg_eb_L1PhysicsHigh_noPS", # 3MU6
-    "HLT_eb_low_L1RD2_FILLED", # L1_MU6' L1_MU4_J12'
-    "HLT_eb_high_L1RD2_FILLED"  # L1_2MU4', L1_MU15 L1_MU6_2MU4', 'L1_MU6_J20'  'L1_EM7_MU10', 'L1_EM15_MU4',
+    # "HLT_noalg_eb_L1PhysicsLow_noPS", #L1_2MU6 , L1_3MU4, L1_MU20,
+    # "HLT_noalg_eb_L1PhysicsHigh_noPS", # 3MU6
+    # "HLT_eb_low_L1RD2_FILLED", # L1_MU6' L1_MU4_J12'
+    # "HLT_eb_high_L1RD2_FILLED"  # L1_2MU4', L1_MU15 L1_MU6_2MU4', 'L1_MU6_J20'  'L1_EM7_MU10', 'L1_EM15_MU4',
 ]
 
 from OTriggerHLT import OTriggerHLT
@@ -199,7 +200,8 @@ for entry in xrange(numEntriesToProcess):
 
     for trig in trigList :
         passTrig[trig][0] = 0
-        if  ROOT.trigDecTool.isPassed( trig ) : passTrig[trig][0] = 1
+        if ROOT.trigDecTool.isPassed( trig ):
+            passTrig[trig][0] = 1
     passTrig["L1_LFV-MU-topo"][0] = emulated
 
     l1muons.clear()
