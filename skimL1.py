@@ -102,7 +102,8 @@ def main():
         l1emtaus= t.LVL1EmTauRoIs
         if verbose:
             print_l1emtaus(l1emtaus)
-        check_L1_LAR_EM(l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
+        check_L1_LAR_EM      (l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
+        check_L1_JPSI_1M5_EM7(l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
 
         continue
 
@@ -303,7 +304,7 @@ def book_counters():
     counters = dict((t, {'any':0,
                          'pass':0,
                          'emul':0})
-                    for t in ['L1_LAR-EM'])
+                    for t in ['L1_LAR-EM', 'L1_JPSI-1M5-EM7'])
     return counters
 
 def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
@@ -342,6 +343,27 @@ def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
             if pass_rc: h_emul_et.Fill(et)
             if pass_et: h_emul_eta_phi.Fill(eta, phi)
         # print("  [%03d]: %.2f\t%.2f\t%.2f" % (iL1em, et, eta, phi))
+
+def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
+    def addp4(o):
+        o.p4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
+        o.p4.SetPtEtaPhiM(o.eT(), o.eta(), o.phi(), 0.0)
+        return o
+    em7s1 = sorted([em for em in l1emtaus if mev2gev*em.eT()>7.0], # todo check 'twice*'
+                   key=lambda em : em.eT(), reverse=True
+                   )[:1]
+    emall = sorted(l1emtaus, key=lambda em : em.eT(), reverse=True)
+    # in the real algo, is the pair (e1,e1) allowed?
+    masses2 = [(addp4(e1).p4+addp4(e2).p4).Mag2() for e1 in em7s1 for e2 in emall]
+    # masses = [(j1+j2).Mag2() for j1 in em7s1 for j2 in itertools.combinations(jets, 2)]
+    passed   = tdt.isPassed('L1_JPSI-1M5-EM7')
+    m2_lo, m2_hi = 1.0*1.0, 5.0*5.0
+    emulated = any(m2_lo<m2 and m2<m2_hi for m2 in masses2)
+    counters['L1_JPSI-1M5-EM7']['any' ] += 1
+    counters['L1_JPSI-1M5-EM7']['pass'] += (1 if passed else 0)
+    counters['L1_JPSI-1M5-EM7']['emul'] += (1 if emulated else 0)
+    # not clear what histos I could fill here
+
 
 
 if __name__=='__main__':
