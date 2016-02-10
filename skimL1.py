@@ -5,6 +5,8 @@ import array
 
 import ROOT
 
+mev2gev = 1.0E-3
+
 def main():
     # init: load packages, setup xAOD infrastructure
     ROOT.gROOT.SetBatch(1)
@@ -69,12 +71,12 @@ def main():
     recotype = ROOT.vector('int')(10)
     tOut.Branch('recotype',  recotype  )
 
+    histos = book_histos()
 
     # Start processing events
     print( "Number of input events: %s" % t.GetEntries() )
     numEntriesToProcess = max([10, t.GetEntries()]) if process_all_events else min([10, t.GetEntries()])
     print("About to process %d entries" % numEntriesToProcess)
-    mev2gev=1.0E-3
 
     for entry in xrange(numEntriesToProcess):
         t.GetEntry( entry )
@@ -90,8 +92,6 @@ def main():
         if filter_events and skip_run_event(runNumber[0], eventN):
             continue
         print("%d / %d" % (runNumber[0], eventNumber[0]))
-        # met->Ex() << "  " << met->Ey() << "  " << met->Et()
-        # print("l1met: ex %.2f ey %2.f et %2.f" % (l1met.exMiss(), l1met.eyMiss(), l1metp4.Et()))
         if verbose:
             print_l1met(l1met, l1metp4)
             print_l1jets(l1jets)
@@ -99,6 +99,7 @@ def main():
         l1emtaus= t.LVL1EmTauRoIs
         if verbose:
             print_l1emtaus(l1emtaus)
+        check_L1_LAR_EM(l1emtaus, ROOT.trigDecTool, histos)
 
         for trig in trigList :
             passTrig[trig][0] = 0
@@ -132,7 +133,6 @@ def main():
     exit(0)
 
 def get_l1met_p4(l1met, verbose=False):
-    mev2gev = 1.0E-3
     metx = l1met.exMiss()
     mety = l1met.eyMiss()
     met = l1met.energyT()
@@ -275,6 +275,52 @@ trigDecTool.setProperty("OutputLevel", MSG::INFO).ignore();
 trigDecTool.initialize().ignore();
 """
     ROOT.gROOT.ProcessLine(cmd)
+
+def book_histos():
+    histos = dict()
+    meT, MeT, net = 0, 100, 50
+    meta, Meta, neta = -4, +4, 40
+    mphi, Mphi, nphi = -pi, +pi, 40
+    histos['h_any_l1em_et'      ] = ROOT.TH1D('h_any_l1em_et'      ,';ET [GeV]', net, meT, MeT)
+    histos['h_pass_l1em_et'     ] = ROOT.TH1D('h_pass_l1em_et'     ,';ET [GeV]', net, meT, MeT)
+    histos['h_emul_l1em_et'     ] = ROOT.TH1D('h_emul_l1em_et'     ,';ET [GeV]', net, meT, MeT)
+    histos['h_any_l1em_eta_phi' ] = ROOT.TH2D('h_any_l1em_eta_phi' ,';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
+    histos['h_pass_l1em_eta_phi'] = ROOT.TH2D('h_pass_l1em_eta_phi',';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
+    histos['h_emul_l1em_eta_phi'] = ROOT.TH2D('h_emul_l1em_eta_phi',';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
+    return histos
+
+def check_L1_LAR_EM(l1emtaus, tdt, histos):
+    h_any_et       = histos['h_any_l1em_et'      ]
+    h_pass_et      = histos['h_pass_l1em_et'     ]
+    h_emul_et      = histos['h_emul_l1em_et'     ]
+    h_any_eta_phi  = histos['h_any_l1em_eta_phi' ]
+    h_pass_eta_phi = histos['h_pass_l1em_eta_phi']
+    h_emul_eta_phi = histos['h_emul_l1em_eta_phi']
+    passed = tdt.isPassed('L1_LAR-EM')
+    def in_et(l):
+        return mev2gev*l.eT() > 10
+    def in_rectangle(l):
+        eta = int(10*l.eta())
+        phi = int(10*l.phi())
+        return (0.4<eta<1.9) and (1.8<phi<2.2)
+    emulated = any(l1em for l1em in l1emtaus if in_et(l1em) and in_rectangle(l1em))
+    print_l1emtaus(l1emtaus)
+    print 'passed   : ',passed
+    print 'emulated : ',emulated
+    for l1em in l1emtaus:
+        et = mev2gev*l1em.eT()
+        eta = int(10*l1em.eta())
+        phi = int(10*l1em.phi())
+        h_any_et.Fill(et)
+        h_any_eta_phi.Fill(eta, phi)
+        if passed:
+            h_pass_et.Fill(et)
+            h_pass_eta_phi.Fill(eta, phi)
+        if emulated:
+            h_emul_et.Fill(et)
+            h_emul_eta_phi.Fill(eta, phi)
+
+
 
 if __name__=='__main__':
     main()
