@@ -22,9 +22,9 @@ def main():
         print "Please provide input"
         exit()
 
-    process_all_events = False
-    filter_events = False
-    verbose = False
+    process_all_events = True # False
+    filter_events = False # True
+    verbose = False # True
 
     treeName = "CollectionTree" # default when making transient tree anyway
     ch = ROOT.TChain(treeName)
@@ -72,6 +72,7 @@ def main():
     tOut.Branch('recotype',  recotype  )
 
     histos = book_histos()
+    counters = book_counters()
 
     # Start processing events
     print( "Number of input events: %s" % t.GetEntries() )
@@ -86,20 +87,24 @@ def main():
         eventNumber[0] = t.EventInfo.eventNumber()
         runNumber[0] = t.EventInfo.runNumber()
         l1met = t.LVL1EnergySumRoI
-        l1metp4 = get_l1met_p4(l1met, verbose)
+        l1metp4 = get_l1met_p4(l1met)
         l1jets = t.LVL1JetRoIs
         eventN = t.EventInfo.eventNumber()
         if filter_events and skip_run_event(runNumber[0], eventN):
             continue
-        print("%d / %d" % (runNumber[0], eventNumber[0]))
-        if verbose:
-            print_l1met(l1met, l1metp4)
-            print_l1jets(l1jets)
+        if verbose: # True
+            print(10*'-')
+            print("%d / %d" % (runNumber[0], eventNumber[0]))
+            # continue
+            # print_l1met(l1met, l1metp4)
+            # print_l1jets(l1jets)
 
         l1emtaus= t.LVL1EmTauRoIs
         if verbose:
             print_l1emtaus(l1emtaus)
-        check_L1_LAR_EM(l1emtaus, ROOT.trigDecTool, histos)
+        check_L1_LAR_EM(l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
+
+        continue
 
         for trig in trigList :
             passTrig[trig][0] = 0
@@ -130,7 +135,11 @@ def main():
     print "Write out trig ntuple ", fOut.GetName() , " with ", tOut.GetEntries(), " events"
     fOut.Write()
     fOut.Close()
-    exit(0)
+    print(10*'-')
+    print('Summary')
+    print('\t'.join(['trig', 'pass-tdt', 'pass-emul']))
+    for trig, counts in counters.iteritems():
+        print("%10s %6d   %6d"%(trig, counts['pass'], counts['emul']))
 
 def get_l1met_p4(l1met, verbose=False):
     metx = l1met.exMiss()
@@ -160,7 +169,8 @@ def print_l1jets(l1jets):
                                         int(mev2gev*l1jet.et8x8()), int(mev2gev*l1jet.et4x4()),
                                         int(10*l1jet.eta()), int(10*l1jet.phi())))
 def print_l1emtaus(l1emtaus):
-    print("jets[%d]: et emIso eta phi"%len(l1emtaus))
+    print("l1emtau[%d]: et emIso eta phi"%len(l1emtaus))
+    twice = 2.0 # Murrough says that these clusters are in 0.5MeV unit?
     for iEmtau, l1emtau in enumerate(l1emtaus): # todo check duplication
         # format from TopoInputEvent::dump()
         # Et isolation eta phi etaDouble phiDouble
@@ -289,37 +299,49 @@ def book_histos():
     histos['h_emul_l1em_eta_phi'] = ROOT.TH2D('h_emul_l1em_eta_phi',';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
     return histos
 
-def check_L1_LAR_EM(l1emtaus, tdt, histos):
+def book_counters():
+    counters = dict((t, {'any':0,
+                         'pass':0,
+                         'emul':0})
+                    for t in ['L1_LAR-EM'])
+    return counters
+
+def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
+    """check the L1_LAR-EM trigger in two ways:
+    - emulation vs. tdt -> counters
+    - pass/fail one of the two requirements (et, position) -> histograms
+    """
     h_any_et       = histos['h_any_l1em_et'      ]
     h_pass_et      = histos['h_pass_l1em_et'     ]
     h_emul_et      = histos['h_emul_l1em_et'     ]
     h_any_eta_phi  = histos['h_any_l1em_eta_phi' ]
     h_pass_eta_phi = histos['h_pass_l1em_eta_phi']
     h_emul_eta_phi = histos['h_emul_l1em_eta_phi']
-    passed = tdt.isPassed('L1_LAR-EM')
-    def in_et(l):
-        return mev2gev*l.eT() > 10
-    def in_rectangle(l):
-        eta = int(10*l.eta())
-        phi = int(10*l.phi())
-        return (0.4<eta<1.9) and (1.8<phi<2.2)
+    twice = 1.0 # todo checkme 2.0 # Murrough says that these clusters are in 0.5MeV unit?
+    def in_et(l): # todo: implement in int?
+        return twice*mev2gev*l.eT() > 10
+    def in_rectangle(l): # todo: implement this in int space? (rather than float)
+        return (0.4<l.eta()<1.9) and (1.8<l.phi()<2.2)
+    passed   = tdt.isPassed('L1_LAR-EM')
     emulated = any(l1em for l1em in l1emtaus if in_et(l1em) and in_rectangle(l1em))
-    print_l1emtaus(l1emtaus)
-    print 'passed   : ',passed
-    print 'emulated : ',emulated
-    for l1em in l1emtaus:
-        et = mev2gev*l1em.eT()
-        eta = int(10*l1em.eta())
-        phi = int(10*l1em.phi())
-        h_any_et.Fill(et)
-        h_any_eta_phi.Fill(eta, phi)
+    counters['L1_LAR-EM']['any' ] += 1
+    counters['L1_LAR-EM']['pass'] += (1 if passed else 0)
+    counters['L1_LAR-EM']['emul'] += (1 if emulated else 0)
+    for iL1em, l1em in enumerate(l1emtaus):
+        et = twice*mev2gev*l1em.eT()
+        eta = l1em.eta()
+        phi = l1em.phi()
+        pass_et = in_et(l1em)
+        pass_rc = in_rectangle(l1em)
+        if pass_rc: h_any_et.Fill(et)
+        if pass_et: h_any_eta_phi.Fill(eta, phi)
         if passed:
-            h_pass_et.Fill(et)
-            h_pass_eta_phi.Fill(eta, phi)
+            if pass_rc: h_pass_et.Fill(et)
+            if pass_et: h_pass_eta_phi.Fill(eta, phi)
         if emulated:
-            h_emul_et.Fill(et)
-            h_emul_eta_phi.Fill(eta, phi)
-
+            if pass_rc: h_emul_et.Fill(et)
+            if pass_et: h_emul_eta_phi.Fill(eta, phi)
+        # print("  [%03d]: %.2f\t%.2f\t%.2f" % (iL1em, et, eta, phi))
 
 
 if __name__=='__main__':
