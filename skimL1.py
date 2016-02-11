@@ -105,8 +105,6 @@ def main():
         check_L1_LAR_EM      (l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
         check_L1_JPSI_1M5_EM7(l1emtaus=l1emtaus, tdt=ROOT.trigDecTool, histos=histos, counters=counters)
 
-        continue
-
         for trig in trigList :
             passTrig[trig][0] = 0
             if ROOT.trigDecTool.isPassed( trig ):
@@ -122,6 +120,9 @@ def main():
         for toporoi in HLT.topoRoIs:
             topomuons.push_back(toporoi2mu(toporoi))
         topomuonsn[0] = len(topomuons)
+
+        check_L1_BTAG_MU4J15(l1mus=topomuons, l1jets=l1jets, tdt=ROOT.trigDecTool, histograms=histos, counters=counters)
+        continue
 
         recomuons.clear()
         recotype.clear()
@@ -302,16 +303,23 @@ def book_histos():
     # L1_JPSI-1M5-EM7
     nem, mem, Mem = 11, -0.5, 10.5 # N em clusters
     nm, mm, Mm = 40, 0.0, 40.0 # inv mass
-    histos['h_any_l1jpsi_eta_phi' ] = ROOT.TH2D('h_any_l1jpsi_mult_m'  ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
-    histos['h_pass_l1jpsi_eta_phi'] = ROOT.TH2D('h_pass_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
-    histos['h_emul_l1jpsi_eta_phi'] = ROOT.TH2D('h_emul_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    histos['h_any_l1jpsi_mult_m' ] = ROOT.TH2D('h_any_l1jpsi_mult_m'  ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    histos['h_pass_l1jpsi_mult_m'] = ROOT.TH2D('h_pass_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    histos['h_emul_l1jpsi_mult_m'] = ROOT.TH2D('h_emul_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    # L1_BTAG_MU4J15
+    npairs, mpairs, Mpairs = 11, -0.5, 10.5 # N jet-mu pairs
+    ndr, mdr, Mdr = 60, 0.0, 6.0 # deltaR(j,mu)
+    other_args  = (';mult;#Delta R (jet, #mu)', 11, -0.5, 10.5, 60, 0.0, 6.0)
+    histos['h_any_l1jpsi_mult_dr' ] = ROOT.TH2D('h_any_l1jpsi_mult_dr'  , *other_args)
+    histos['h_pass_l1jpsi_mult_dr'] = ROOT.TH2D('h_pass_l1jpsi_mult_dr' , *other_args)
+    histos['h_emul_l1jpsi_mult_dr'] = ROOT.TH2D('h_emul_l1jpsi_mult_dr' , *other_args)
     return histos
 
 def book_counters():
     counters = dict((t, {'any':0,
                          'pass':0,
                          'emul':0})
-                    for t in ['L1_LAR-EM', 'L1_JPSI-1M5-EM7'])
+                    for t in ['L1_LAR-EM', 'L1_JPSI-1M5-EM7', 'L1_BTAG_MU4J15'])
     return counters
 
 def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
@@ -352,15 +360,15 @@ def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
         # print("  [%03d]: %.2f\t%.2f\t%.2f" % (iL1em, et, eta, phi))
 
 def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
-    def addp4(o):
-        o.p4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
-        o.p4.SetPtEtaPhiM(mev2gev*o.eT(), o.eta(), o.phi(), 0.0)
-        return o
     em7s1 = sorted([em for em in l1emtaus if mev2gev*em.eT()>7.0], # todo check 'twice*'
                    key=lambda em : em.eT(), reverse=True
                    )[:1]
     emall = sorted(l1emtaus, key=lambda em : em.eT(), reverse=True)
     # in the real algo, is the pair (e1,e1) allowed?
+    def addp4(o):
+        o.p4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
+        o.p4.SetPtEtaPhiM(mev2gev*o.eT(), o.eta(), o.phi(), 0.0)
+        return o
     masses = [(addp4(e1).p4+addp4(e2).p4).M() for e1 in em7s1 for e2 in emall]
     # masses = [(j1+j2).Mag() for j1 in em7s1 for j2 in itertools.combinations(jets, 2)]
     passed   = tdt.isPassed('L1_JPSI-1M5-EM7')
@@ -369,9 +377,9 @@ def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
     counters['L1_JPSI-1M5-EM7']['any' ] += 1
     counters['L1_JPSI-1M5-EM7']['pass'] += (1 if passed else 0)
     counters['L1_JPSI-1M5-EM7']['emul'] += (1 if emulated else 0)
-    h_any  = histos['h_any_l1jpsi_eta_phi' ]
-    h_pass = histos['h_pass_l1jpsi_eta_phi']
-    h_emul = histos['h_emul_l1jpsi_eta_phi']
+    h_any  = histos['h_any_l1jpsi_mult_m' ]
+    h_pass = histos['h_pass_l1jpsi_mult_m']
+    h_emul = histos['h_emul_l1jpsi_mult_m']
     mult = len(masses)
     max_m = h_any.GetYaxis().GetXmax()
     for m in masses:
@@ -380,6 +388,35 @@ def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
         if passed: h_pass.Fill(mult, m)
     if emulated: h_emul.Fill(mult, emulated_m)
 
+def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters={}):
+    def addp4(o):
+        o.p4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
+        o.p4.SetPtEtaPhiM(mev2gev*o.et8x8(), o.eta(), o.phi(), 0.0)
+        return o
+    mu4ab = [m for m in l1mus if m.Pt()*mev2gev>4.0] # todo: ask if the code has > or >= (here 1 bit: can diff)
+    cj15ab = [addp4(j) for j in l1jets if j.et8x8()*mev2gev>15.0 and abs(j.eta())<2.6]
+    drs = [j.p4.DeltaR(m) for j in cj15ab for m in mu4ab]
+    trigger = 'L1_BTAG_MU4J15'
+    passed   = tdt.isPassed(trigger)
+    emulated = any(0.0<dr and dr<0.4 for dr in drs)
+    emulated_dr = next(dr for dr in drs if 0.0<dr and dr<0.4) if emulated else None
+    counts = counters[trigger]
+    counts['any' ] += 1
+    counts['pass'] += (1 if passed else 0)
+    counts['emul'] += (1 if emulated else 0)
+    h_any  = histograms['h_any_l1jpsi_mult_dr' ]
+    h_pass = histograms['h_pass_l1jpsi_mult_dr']
+    h_emul = histograms['h_emul_l1jpsi_mult_dr']
+    max_mult = h_any.GetXaxis().GetXmax()-0.5
+    max_dr   = h_any.GetYaxis().GetXmax()
+    mult = min([max_mult, len(drs)]) # overflows
+    for dr in drs:
+        dr = min([dr, max_dr]) # overflow
+        h_any .Fill(mult, dr)
+        if passed: h_pass.Fill(mult, dr)
+    if emulated:
+        h_emul.Fill(mult, emulated_dr)
+        print("L1_BTAG_MU4J15 pass emul w/ dr %.2f, mult %.2f"%(emulated_dr, mult))
 
 if __name__=='__main__':
     main()
