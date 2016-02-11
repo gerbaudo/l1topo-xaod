@@ -289,6 +289,7 @@ trigDecTool.initialize().ignore();
 
 def book_histos():
     histos = dict()
+    # L1_LAR-EM
     meT, MeT, net = 0, 100, 50
     meta, Meta, neta = -4, +4, 40
     mphi, Mphi, nphi = -pi, +pi, 40
@@ -298,6 +299,12 @@ def book_histos():
     histos['h_any_l1em_eta_phi' ] = ROOT.TH2D('h_any_l1em_eta_phi' ,';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
     histos['h_pass_l1em_eta_phi'] = ROOT.TH2D('h_pass_l1em_eta_phi',';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
     histos['h_emul_l1em_eta_phi'] = ROOT.TH2D('h_emul_l1em_eta_phi',';eta;phi', neta, meta, Meta, nphi, mphi, Mphi)
+    # L1_JPSI-1M5-EM7
+    nem, mem, Mem = 11, -0.5, 10.5 # N em clusters
+    nm, mm, Mm = 40, 0.0, 40.0 # inv mass
+    histos['h_any_l1jpsi_eta_phi' ] = ROOT.TH2D('h_any_l1jpsi_mult_m'  ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    histos['h_pass_l1jpsi_eta_phi'] = ROOT.TH2D('h_pass_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    histos['h_emul_l1jpsi_eta_phi'] = ROOT.TH2D('h_emul_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
     return histos
 
 def book_counters():
@@ -347,23 +354,31 @@ def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
 def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
     def addp4(o):
         o.p4 = ROOT.TLorentzVector(0.0,0.0,0.0,0.0)
-        o.p4.SetPtEtaPhiM(o.eT(), o.eta(), o.phi(), 0.0)
+        o.p4.SetPtEtaPhiM(mev2gev*o.eT(), o.eta(), o.phi(), 0.0)
         return o
     em7s1 = sorted([em for em in l1emtaus if mev2gev*em.eT()>7.0], # todo check 'twice*'
                    key=lambda em : em.eT(), reverse=True
                    )[:1]
     emall = sorted(l1emtaus, key=lambda em : em.eT(), reverse=True)
     # in the real algo, is the pair (e1,e1) allowed?
-    masses2 = [(addp4(e1).p4+addp4(e2).p4).Mag2() for e1 in em7s1 for e2 in emall]
-    # masses = [(j1+j2).Mag2() for j1 in em7s1 for j2 in itertools.combinations(jets, 2)]
+    masses = [(addp4(e1).p4+addp4(e2).p4).M() for e1 in em7s1 for e2 in emall]
+    # masses = [(j1+j2).Mag() for j1 in em7s1 for j2 in itertools.combinations(jets, 2)]
     passed   = tdt.isPassed('L1_JPSI-1M5-EM7')
-    m2_lo, m2_hi = 1.0*1.0, 5.0*5.0
-    emulated = any(m2_lo<m2 and m2<m2_hi for m2 in masses2)
+    emulated = any(1.0<m and m<5.0 for m in masses)
+    emulated_m = next(m for m in masses if 1.0<m and m<5.0) if emulated else None
     counters['L1_JPSI-1M5-EM7']['any' ] += 1
     counters['L1_JPSI-1M5-EM7']['pass'] += (1 if passed else 0)
     counters['L1_JPSI-1M5-EM7']['emul'] += (1 if emulated else 0)
-    # not clear what histos I could fill here
-
+    h_any  = histos['h_any_l1jpsi_eta_phi' ]
+    h_pass = histos['h_pass_l1jpsi_eta_phi']
+    h_emul = histos['h_emul_l1jpsi_eta_phi']
+    mult = len(masses)
+    max_m = h_any.GetYaxis().GetXmax()
+    for m in masses:
+        m = min([m, max_m]) # overflow
+        h_any .Fill(mult, m)
+        if passed: h_pass.Fill(mult, m)
+    if emulated: h_emul.Fill(mult, emulated_m)
 
 
 if __name__=='__main__':
