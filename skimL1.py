@@ -367,7 +367,8 @@ def check_L1_LAR_EM(l1emtaus=[], tdt=None, histos={}, counters={}):
         return twice*mev2gev*l.eT() > 10
     def in_rectangle(l): # todo: implement this in int space? (rather than float)
         return (0.4<l.eta()<1.9) and (1.8<l.phi()<2.2)
-    passed   = tdt.isPassed('L1_LAR-EM')
+    # passed   = tdt.isPassed('L1_LAR-EM')
+    passed = passed_before_prescale(tdt, 'L1_LAR-EM')
     emulated = any(l1em for l1em in l1emtaus if in_et(l1em) and in_rectangle(l1em))
     counters['L1_LAR-EM']['any' ] += 1
     counters['L1_LAR-EM']['pass'] += (1 if passed else 0)
@@ -400,7 +401,8 @@ def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
         return o
     masses = [(addp4(e1).p4+addp4(e2).p4).M() for e1 in em7s1 for e2 in emall]
     # masses = [(j1+j2).Mag() for j1 in em7s1 for j2 in itertools.combinations(jets, 2)]
-    passed   = tdt.isPassed('L1_JPSI-1M5-EM7')
+    # passed   = tdt.isPassed('L1_JPSI-1M5-EM7')
+    passed = passed_before_prescale(tdt, 'L1_JPSI-1M5-EM7')
     emulated = any(1.0<m and m<5.0 for m in masses)
     emulated_m = next(m for m in masses if 1.0<m and m<5.0) if emulated else None
     counters['L1_JPSI-1M5-EM7']['any' ] += 1
@@ -431,7 +433,8 @@ def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters=
     cj15ab = [addp4(j) for j in l1jets if j.et8x8()*mev2gev>15.0 and abs(j.eta())<2.6]
     drs = [j.p4.DeltaR(m) for j in cj15ab for m in mu4ab]
     trigger = 'L1_BTAG_MU4J15'
-    passed   = tdt.isPassed(trigger)
+    # passed   = tdt.isPassed(trigger)
+    passed = passed_before_prescale(tdt, trigger)
     emulated = any(0.0<dr and dr<0.4 for dr in drs)
     emulated_dr = next(dr for dr in drs if 0.0<dr and dr<0.4) if emulated else None
     counts = counters[trigger]
@@ -458,6 +461,13 @@ def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters=
     h_match_cj15ab = histograms['h_l1btag_cj15ab_mult_match']
     h_match_mu4ab .Fill(shift_mult_overflow(len(mu4ab) , h_match_mu4ab) , hw_emul_binc(passed, emulated))
     h_match_cj15ab.Fill(shift_mult_overflow(len(cj15ab), h_match_cj15ab), hw_emul_binc(passed, emulated))
+
+def passed_before_prescale(tdt, trigger):
+    chain_group   = tdt.getChainGroup(trigger)
+    passed = chain_group.isPassed()
+    passed_bits = chain_group.isPassedBits()
+    passed_before_prescale = passed_bits & ROOT.TrigDefs.L1_isPassedBeforePrescale
+    return passed_before_prescale
 
 if __name__=='__main__':
     main()
