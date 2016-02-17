@@ -306,14 +306,43 @@ def book_histos():
     histos['h_any_l1jpsi_mult_m' ] = ROOT.TH2D('h_any_l1jpsi_mult_m'  ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
     histos['h_pass_l1jpsi_mult_m'] = ROOT.TH2D('h_pass_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
     histos['h_emul_l1jpsi_mult_m'] = ROOT.TH2D('h_emul_l1jpsi_mult_m' ,';mult;m[GeV]', nem, mem, Mem, nm, mm, Mm)
+    binning = (11, -0.5, 10.5, 4, 0.0, 4.0)
+    histos['h_l1jpsi_emall_mult_match'] = ROOT.TH2D('h_l1jpsi_emall_mult_match', ';emall multiplicity; hw/emul', *binning)
+    set_hw_emul_bin_labels(histos['h_l1jpsi_emall_mult_match'])
+
     # L1_BTAG_MU4J15
     npairs, mpairs, Mpairs = 11, -0.5, 10.5 # N jet-mu pairs
     ndr, mdr, Mdr = 60, 0.0, 6.0 # deltaR(j,mu)
     other_args  = (';mult;#Delta R (jet, #mu)', 11, -0.5, 10.5, 60, 0.0, 6.0)
-    histos['h_any_l1jpsi_mult_dr' ] = ROOT.TH2D('h_any_l1jpsi_mult_dr'  , *other_args)
-    histos['h_pass_l1jpsi_mult_dr'] = ROOT.TH2D('h_pass_l1jpsi_mult_dr' , *other_args)
-    histos['h_emul_l1jpsi_mult_dr'] = ROOT.TH2D('h_emul_l1jpsi_mult_dr' , *other_args)
+    histos['h_any_l1btag_mult_dr' ] = ROOT.TH2D('h_any_l1btag_mult_dr'  , *other_args)
+    histos['h_pass_l1btag_mult_dr'] = ROOT.TH2D('h_pass_l1btag_mult_dr' , *other_args)
+    histos['h_emul_l1btag_mult_dr'] = ROOT.TH2D('h_emul_l1btag_mult_dr' , *other_args)
+    binning = (11, -0.5, 10.5, 4, 0.0, 4.0)
+    histos['h_l1btag_mu4ab_mult_match' ] = ROOT.TH2D('h_l1btag_mu4ab_mult_match' , ';mu4ab multiplicity; hw/emul', *binning)
+    histos['h_l1btag_cj15ab_mult_match'] = ROOT.TH2D('h_l1btag_cj15ab_mult_match', ';cj15ab multiplicity; hw/emul', *binning)
+    set_hw_emul_bin_labels(histos['h_l1btag_mu4ab_mult_match' ])
+    set_hw_emul_bin_labels(histos['h_l1btag_cj15ab_mult_match'])
     return histos
+
+def hw_emul_binc(pass_hw, pass_em):
+    "bin center assuming that the binning is 4 bins in [0.0, 4.0]"
+    return (0.5 if pass_hw and pass_em else
+            1.5 if pass_hw else
+            2.5 if pass_em else
+            3.5)
+
+def hw_emul_label(pass_hw, pass_em):
+    return ('1/1' if pass_hw and pass_em else
+            '1/0' if pass_hw else
+            '0/1' if pass_em else
+            '0/0')
+
+def set_hw_emul_bin_labels(h):
+    yax = h.GetYaxis()
+    for pass_hw in [True, False]:
+        for pass_em in [True, False]:
+            yax.SetBinLabel(yax.FindBin(hw_emul_binc(pass_hw, pass_em)),
+                            hw_emul_label(pass_hw, pass_em))
 
 def book_counters():
     counters = dict((t, {'any':0,
@@ -387,6 +416,11 @@ def check_L1_JPSI_1M5_EM7(l1emtaus=[], tdt=None, histos={}, counters={}):
         h_any .Fill(mult, m)
         if passed: h_pass.Fill(mult, m)
     if emulated: h_emul.Fill(mult, emulated_m)
+    def shift_mult_overflow(v, h):
+        max_emall_mult =h.GetXaxis().GetXmax()-1.0 # todo use binwidth?
+        return min([v, max_emall_mult])
+    h_match = histos['h_l1jpsi_emall_mult_match']
+    h_match.Fill(shift_mult_overflow(len(emall), h_match), hw_emul_binc(passed, emulated))
 
 def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters={}):
     def addp4(o):
@@ -404,9 +438,9 @@ def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters=
     counts['any' ] += 1
     counts['pass'] += (1 if passed else 0)
     counts['emul'] += (1 if emulated else 0)
-    h_any  = histograms['h_any_l1jpsi_mult_dr' ]
-    h_pass = histograms['h_pass_l1jpsi_mult_dr']
-    h_emul = histograms['h_emul_l1jpsi_mult_dr']
+    h_any  = histograms['h_any_l1btag_mult_dr' ]
+    h_pass = histograms['h_pass_l1btag_mult_dr']
+    h_emul = histograms['h_emul_l1btag_mult_dr']
     max_mult = h_any.GetXaxis().GetXmax()-0.5
     max_dr   = h_any.GetYaxis().GetXmax()
     mult = min([max_mult, len(drs)]) # overflows
@@ -417,6 +451,13 @@ def check_L1_BTAG_MU4J15(l1mus=[], l1jets=[], tdt=None, histograms={}, counters=
     if emulated:
         h_emul.Fill(mult, emulated_dr)
         print("L1_BTAG_MU4J15 pass emul w/ dr %.2f, mult %.2f"%(emulated_dr, mult))
+    def shift_mult_overflow(v, h):
+        max_mult =h.GetXaxis().GetXmax()-1.0 # todo use binwidth?
+        return min([v, max_mult])
+    h_match_mu4ab  = histograms['h_l1btag_mu4ab_mult_match' ]
+    h_match_cj15ab = histograms['h_l1btag_cj15ab_mult_match']
+    h_match_mu4ab .Fill(shift_mult_overflow(len(mu4ab) , h_match_mu4ab) , hw_emul_binc(passed, emulated))
+    h_match_cj15ab.Fill(shift_mult_overflow(len(cj15ab), h_match_cj15ab), hw_emul_binc(passed, emulated))
 
 if __name__=='__main__':
     main()
