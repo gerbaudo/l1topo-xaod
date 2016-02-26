@@ -7,6 +7,7 @@
 #include "xAODTrigL1Calo/L1TopoRawData.h"
 #include "xAODTrigL1Calo/L1TopoRawDataContainer.h"
 #include "L1TopoRDO/BlockTypes.h"
+#include "L1TopoRDO/Fibre.h"
 #include "L1TopoRDO/Header.h"
 #include "L1TopoRDO/Helpers.h"
 #include "L1TopoRDO/L1TopoTOB.h"
@@ -16,6 +17,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 
+#include <bitset>
 #include <iostream>
 #include <ios>
 
@@ -65,53 +67,43 @@ int main(int argc, char* argv[])
 
         const xAOD::L1TopoRawDataContainer *l1toporawdatas = nullptr;
         event.retrieve(l1toporawdatas, "L1TopoRawData");
-
-        // auto l1rd_it = l1toporawdatas->begin();
-        // auto l1rd_it_end = l1toporawdatas->end();
-
+        // initialise header: beware, this can make a valid-looking
+        // header and be misinterpreted; set version 15, BCN -7, which
+        // is unlikely:
+        L1Topo::Header header(0xf,0,0,0,0,1,0x7);
+        static const unsigned int nTopoCTPOutputs = 128; //! Number of CTP outputs
+        std::bitset<nTopoCTPOutputs> triggerBits; //! trigger bits sent to CTP
+        std::bitset<nTopoCTPOutputs> overflowBits; //! overflow bits corresponding to CTP output
         for(auto &l1topo : *l1toporawdatas) {
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
-                    auto header = L1Topo::Header(word);
+                    header = L1Topo::Header(word);
                     cout<<header<<endl;
                 } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
-                    cout<<tob<<endl;
                     cout<<"dataword "<<std::hex<<word<<std::dec<<endl;
+                    cout<<tob<<endl;
                     // collect trigger and overflow bits in bitsets
                     for (unsigned int i=0; i<8; ++i){  // 8 bits/word?
-                        unsigned int index = L1Topo::triggerBitIndexNew(l1topo->sourceID(), tob, i); // implement this
-                        const bool trigger_bit = (tob.trigger_bits()>>i)&1;
-                        const bool overflow_bit = (tob.overflow_bits()>>i)&1;
+                        unsigned int index = L1Topo::triggerBitIndexNew(l1topo->sourceID(), tob, i);
+                        triggerBits[index]  = (tob.trigger_bits()>>i)&1;
+                        overflowBits[index] = (tob.overflow_bits()>>i)&1;
                     }
+                } else if(L1Topo::BlockTypes::FIBRE==L1Topo::blockType(word)) {
                     // check fibers errors (see fibers in monitoring) -- status flag
-                    // run monitoring with debug on and get the output to compare against
-
-
+                    auto fibreBlock = L1Topo::Fibre(word);
+                    auto statuses = fibreBlock.status();
+                    for (unsigned int i=0; i<statuses.size(); ++i){
+                        if (statuses.at(i)!=0){
+                            cout<<" Warning: Fibre status set for fibre "
+                                <<i<<" of ROB "<<L1Topo::formatHex8(l1topo->sourceID())<<" header "<<header<<endl;
+                        }
+                    }
                 }
             } // for(word)
         } // for(l1topo)
-
-        // const xAOD::ElectronContainer* electrons;
-        // CHECK( event.retrieve(electrons, "ElectronCollection") );
-        // auto el_it      = electrons->begin();
-        // auto el_it_last = electrons->end();
-        // unsigned int i = 0;
-        // for (; el_it != el_it_last; ++el_it, ++i) {
-        //     const xAOD::Electron* el = *el_it;
-        //     std::cout << "Electron " << i << std::endl;
-        //     std::cout << "xAOD/raw pt = " << el->pt() << std::endl;
-        //     Info (APP_NAME,"Electron #%d", i);
-
-        //     const Root::TResult result= myEgCorrections.calculate(*el);
-
-        //     Info( APP_NAME,"===>>> Result 0 position %f ",result.getResult(0));
-
-        // }
-
-
-
+        cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
+        cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
     } // for iEntry
-
 }
