@@ -74,6 +74,22 @@ int main(int argc, char* argv[])
         static const unsigned int nTopoCTPOutputs = 128; //! Number of CTP outputs
         std::bitset<nTopoCTPOutputs> triggerBits; //! trigger bits sent to CTP
         std::bitset<nTopoCTPOutputs> overflowBits; //! overflow bits corresponding to CTP output
+        // first loop: just count the words
+        unsigned int nl1topowords = 0;
+        for(auto &l1topo : *l1toporawdatas) {
+            for(auto &word : l1topo->dataWords()){
+                if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
+                    nl1topowords++;
+            }
+        }
+        // second loop: just print out the words
+        cout<<"L1Topo data words: "<<nl1topowords<<endl;
+        for(auto &l1topo : *l1toporawdatas) {
+            for(auto &word : l1topo->dataWords()){
+                if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
+                    cout<<L1Topo::formatHex8(word)<<endl;
+            }
+        }
         for(auto &l1topo : *l1toporawdatas) {
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
@@ -82,7 +98,7 @@ int main(int argc, char* argv[])
                     cout<<header<<endl;
                 } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
-                    cout<<"dataword "<<std::hex<<word<<std::dec<<endl;
+                    cout<<"dataword 0x"<<std::hex<<word<<std::dec<<endl;
                     cout<<tob<<endl;
                     // collect trigger and overflow bits in bitsets
                     for (unsigned int i=0; i<8; ++i){  // 8 bits/word?
