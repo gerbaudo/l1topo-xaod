@@ -1,0 +1,67 @@
+2015-03-08  Simon George  <S.George@rhul.ac.uk>
+
+	* test/L1TopoRDO_test.cxx (test14): update ModuleID unit tests for
+	numbering scheme correction.
+	* L1TopoRDO/ModuleID.h: Update documentation about module
+	numbering scheme.
+	* L1TopoRDO-00-00-07
+
+2015-03-06  Simon George  <s.george@rhul.ac.uk>
+
+	* test/L1TopoRDO_test.cxx (test14): add test for ModuleID class and update reference
+	* src/Helpers.cxx: add module type to printout
+	* src/L1TopoRDO.cxx: add isDAQModule, isROIModule methods
+	* src/ModuleID.cxx: add class to decode/encode the L1Topo module
+	ID, implementing the numbering scheme agreed with experts.
+	* L1TopoRDO-00-00-06
+
+2015-02-12  Simon George  <S.George@rhul.ac.uk>
+
+	* src/Helpers.cxx: save & restore ostream state in print helper
+	functions, using boost::io::ios_all_saver. Fixes ATR-10179 CID 29057.
+
+	* L1TopoRDO-00-00-05
+
+2015-02-11  Simon George  <S.George@rhul.ac.uk>
+
+	* src/Fibre.cxx: change vector element access from [i] to .at(i)
+	so it is bounds-checked.
+	* test/L1TopoRDO_test.cxx: minor output formatting
+
+
+
+2015-02-10  Simon George  <S.George@rhul.ac.uk>
+
+	* Add Error, Status and Fibre classes
+	* Move BlockTypes from Helpers to own file
+	* Updated unit tests & references
+	* L1TopoRDO-00-00-04
+
+2015-01-27  Simon George  <s.george@rhul.ac.uk>
+
+	* src/Helpers.cxx: remove debug printout to stdout
+
+	* share/L1TopoRDO_test.ref: updated unit test references
+
+	* src/L1TopoRDO.cxx;L1TopoRDO/L1TopoRDO.h: initialise m_sourceID
+	to zero and remove m_versionNumber; add dump method for use by
+	RoIBResult via L1TopoResult.
+
+	* L1TopoRDO-00-00-03
+
+2015-01-26  Simon George  <s.george@rhul.ac.uk>
+
+	* src/Helpers.cxx,.h:
+	triggerBitIndex changed to match new understanding of hardware, i.e.
+	index = 64*module + 32*c.fpga() + 16*c.clock() + 8*c.index();
+	(fpga and clock were previously the other way around).
+	* test/L1TopoRDO_test.cxx (test9): update unit test to match this
+
+	* L1TopoRDO-00-00-02
+
+2015-01-26  Simon George  <s.george@rhul.ac.uk>
+
+	* Package created
+	* L1TopoRDO-00-00-01
+
+
