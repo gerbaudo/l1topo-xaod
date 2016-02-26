@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <bitset>
-#include <algorithm> 
+#include <algorithm>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -20,7 +20,7 @@
 
 
 namespace L1Topo{
-  
+
   std::string formatHex8(uint32_t word){
     std::ostringstream s;
     s << std::showbase << std::hex << std::internal << std::setfill ('0') << std::setw(10) << word << std::dec << std::noshowbase;
@@ -49,6 +49,14 @@ namespace L1Topo{
     return getDecisionAndOverflowBits(col);
   }
   */
+
+// this reflects the actual CTP mapping and the CTP simulation with which L1Topo output is compared
+unsigned int triggerBitIndexNew(uint32_t moduleId, L1Topo::L1TopoTOB c, unsigned int bitIdx){
+     uint32_t module = (moduleId >>4) & 0x1;
+     uint32_t index = 64*module + 32*c.fpga() + c.clock() + 2*(8*c.index() + bitIdx);
+     //std::cout << "L1Topo::triggerBitIndexNew DEBUG index=" << index << " for module=" << module << " fpga=" << c.fpga() << " clock=" << c.clock() << " index=" << c.index() << " bitIdx=" << bitIdx << std::endl;
+     return index;
+}
 
 
 } // namespace L1Topo

@@ -8,6 +8,7 @@
 #include "xAODTrigL1Calo/L1TopoRawDataContainer.h"
 #include "L1TopoRDO/BlockTypes.h"
 #include "L1TopoRDO/Header.h"
+#include "L1TopoRDO/Helpers.h"
 #include "L1TopoRDO/L1TopoTOB.h"
 
 #include "TChain.h"
@@ -78,8 +79,12 @@ int main(int argc, char* argv[])
                     auto tob = L1Topo::L1TopoTOB(word);
                     cout<<tob<<endl;
                     cout<<"dataword "<<std::hex<<word<<std::dec<<endl;
-                    // todo 
-                    // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
+                    // collect trigger and overflow bits in bitsets
+                    for (unsigned int i=0; i<8; ++i){  // 8 bits/word?
+                        unsigned int index = L1Topo::triggerBitIndexNew(l1topo->sourceID(), tob, i); // implement this
+                        const bool trigger_bit = (tob.trigger_bits()>>i)&1;
+                        const bool overflow_bit = (tob.overflow_bits()>>i)&1;
+                    }
                     // check fibers errors (see fibers in monitoring) -- status flag
                     // run monitoring with debug on and get the output to compare against
 
