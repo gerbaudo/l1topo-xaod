@@ -15,10 +15,13 @@ def main():
     if(not ROOT.xAOD.Init().isSuccess()): print "Failed xAOD.Init()"
 
     # Read input tree
-    inputFiles = sys.argv[1].split(',')
-    print "inputFiles = ", inputFiles
-    fileName=inputFiles[0]
-    if len(fileName) == 0 :
+    def is_valid_line(l):
+        "valid line from a txt file"
+        l = l.strip()
+        return l and not l.startswith('#')
+    input_is_filelist = len(sys.argv)>1 and '.txt' in sys.argv[1]
+    inputFiles = [l.strip() for l in open(sys.argv[1]).readlines() if is_valid_line(l)] if input_is_filelist else sys.argv[1].split(',')
+    if not inputFiles :
         print "Please provide input"
         exit()
 
@@ -28,7 +31,7 @@ def main():
 
     treeName = "CollectionTree" # default when making transient tree anyway
     ch = ROOT.TChain(treeName)
-    for input_file in sys.argv[1:]:
+    for input_file in inputFiles:
         ch.Add(input_file)
         print input_file
     t = ROOT.xAOD.MakeTransientTree( ch ) #f, treeName)
