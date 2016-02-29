@@ -74,9 +74,17 @@ int main(int argc, char* argv[])
         static const unsigned int nTopoCTPOutputs = 128; //! Number of CTP outputs
         std::bitset<nTopoCTPOutputs> triggerBits; //! trigger bits sent to CTP
         std::bitset<nTopoCTPOutputs> overflowBits; //! overflow bits corresponding to CTP output
+        struct {
+            bool operator()(const unsigned int v) {
+                const std::vector<unsigned int> l1TopoDaqRobIds = {0x00910000, 0x00910010, 0x00910020};
+                return std::find(l1TopoDaqRobIds.begin(), l1TopoDaqRobIds.end(), v)!= l1TopoDaqRobIds.end();
+            }
+        } isL1topoDaqRobId;
         // first loop: just count the words
         unsigned int nl1topowords = 0;
         for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
             for(auto &word : l1topo->dataWords()){
                 if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
                     nl1topowords++;
@@ -85,12 +93,16 @@ int main(int argc, char* argv[])
         // second loop: just print out the words
         cout<<"L1Topo data words: "<<nl1topowords<<endl;
         for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
             for(auto &word : l1topo->dataWords()){
                 if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
-                    cout<<L1Topo::formatHex8(word)<<endl;
+                    cout<<L1Topo::formatHex8(word)<<" (sourceId: "<<L1Topo::formatHex8(l1topo->sourceID())<<")"<<endl;
             }
         }
         for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
