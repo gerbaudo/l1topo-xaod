@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     event.readFrom(&chain); //, treeName.c_str());
 
     size_t nEntries = chain.GetEntries();
-    nEntries = 10;
+    nEntries = 20;
     for (size_t iEntry = 0; iEntry < nEntries; ++iEntry) {
         event.getEntry(iEntry);
         cout<<" entry "<<iEntry<<endl;
@@ -100,6 +100,8 @@ int main(int argc, char* argv[])
                     cout<<L1Topo::formatHex8(word)<<" (sourceId: "<<L1Topo::formatHex8(l1topo->sourceID())<<")"<<endl;
             }
         }
+        bool someWordsProcessed = false;
+        int previousBunchNumber = 0;
         for(auto &l1topo : *l1toporawdatas) {
             if(not isL1topoDaqRobId(l1topo->sourceID()))
                 continue;
@@ -107,6 +109,14 @@ int main(int argc, char* argv[])
             for(auto word : l1topo->dataWords()){
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
                     header = L1Topo::Header(word);
+                    bool newBcn = previousBunchNumber!=header.bcn();
+                    if(someWordsProcessed and newBcn) {
+                        cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
+                        cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
+                        triggerBits.reset();
+                        overflowBits.reset();
+                    }
+                    previousBunchNumber = header.bcn();
                     cout<<header<<endl;
                 } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
@@ -118,6 +128,7 @@ int main(int argc, char* argv[])
                         triggerBits[index]  = (tob.trigger_bits()>>i)&1;
                         overflowBits[index] = (tob.overflow_bits()>>i)&1;
                     }
+                    someWordsProcessed = true;
                 } else if(L1Topo::BlockTypes::FIBRE==L1Topo::blockType(word)) {
                     // check fibers errors (see fibers in monitoring) -- status flag
                     auto fibreBlock = L1Topo::Fibre(word);
@@ -131,7 +142,9 @@ int main(int argc, char* argv[])
                 }
             } // for(word)
         } // for(l1topo)
-        cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
-        cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
+        if(someWordsProcessed) {
+            cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
+            cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
+        }
     } // for iEntry
 }
