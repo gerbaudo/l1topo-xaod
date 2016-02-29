@@ -1,0 +1,115 @@
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0103-lb0112._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0113-lb0122._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0123-lb0132._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0133-lb0142._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0143-lb0152._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0153-lb0162._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0163-lb0172._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0173-lb0182._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0183-lb0192._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0193-lb0202._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0203-lb0212._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0213-lb0222._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0223-lb0232._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0233-lb0242._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0243-lb0252._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0253-lb0262._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0263-lb0272._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0273-lb0282._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0283-lb0292._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0293-lb0302._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0303-lb0312._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0313-lb0322._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0323-lb0332._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0333-lb0342._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0343-lb0352._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0353-lb0362._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0363-lb0372._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0373-lb0382._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0383-lb0392._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0393-lb0402._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0403-lb0412._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0413-lb0422._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0423-lb0432._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0433-lb0442._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0443-lb0452._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0453-lb0462._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0463-lb0472._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0473-lb0482._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0483-lb0492._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0493-lb0502._0001.1
+root://eosatlas//eos/atlas/atlastier0/rucio/data16_cos/physics_L1Calo/00289723/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543/data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0503-lb0512._0001.1
+
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0003-lb0012._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0013-lb0022._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0023-lb0032._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0033-lb0042._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0043-lb0052._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0053-lb0062._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0063-lb0072._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0073-lb0082._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0083-lb0092._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0093-lb0102._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0103-lb0112._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0113-lb0122._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0123-lb0132._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0133-lb0142._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0143-lb0152._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0153-lb0162._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0163-lb0172._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0173-lb0182._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0183-lb0192._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0193-lb0202._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0203-lb0212._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0213-lb0222._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0223-lb0232._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0233-lb0242._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0243-lb0252._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0253-lb0262._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0263-lb0272._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0273-lb0282._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0283-lb0292._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0293-lb0302._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0303-lb0312._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0313-lb0322._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0323-lb0332._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0333-lb0342._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0343-lb0352._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0353-lb0362._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0363-lb0372._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0373-lb0382._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0383-lb0392._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0393-lb0402._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0403-lb0412._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0413-lb0422._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0423-lb0432._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0433-lb0442._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0443-lb0452._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0453-lb0462._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0463-lb0472._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0473-lb0482._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0483-lb0492._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0493-lb0502._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0503-lb0512._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0513-lb0522._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0523-lb0532._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0533-lb0542._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0543-lb0552._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0553-lb0562._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0563-lb0572._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0573-lb0582._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0583-lb0592._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0593-lb0602._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0603-lb0612._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0613-lb0622._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0623-lb0632._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0633-lb0642._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0643-lb0652._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0653-lb0662._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0663-lb0672._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0673-lb0682._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0683-lb0692._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0693-lb0702._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0704-lb0713._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0714-lb0723._0001.1
+# data16_cos.00289723.physics_L1Calo.merge.AOD.f663_m1543._lb0724-lb0725._0001.1
