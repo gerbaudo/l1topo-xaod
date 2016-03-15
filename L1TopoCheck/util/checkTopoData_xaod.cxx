@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
         cout<<"Failed xAOD.Init()"<<endl;
 
     string default_input_file = "/afs/cern.ch/user/g/gerbaudo/public/tmp/for_simon/xAOD.L1Calo.00287924_lb0100.pool.root";
+    default_input_file = "/afs/cern.ch/user/b/beallen/public/ForDavide/Data16_cos.00291671.physics_L1Calo.part1.root";
     string input_filename = default_input_file;
 
     string treeName = "CollectionTree";
@@ -48,36 +49,39 @@ int main(int argc, char* argv[])
         event.getEntry(iEntry);
         cout<<" entry "<<iEntry<<endl;
 
-        /* event info not available in the test xaod
+        /**/ // event info not available in the test xaod
 
         const xAOD::EventInfo *info = nullptr;
         event.retrieve(info, "EventInfo");
-        printf("\n>>> counter, event global_id, LB, bc_id, lvl1_id, l1tt:"
-               "%zu %d %d %d %d %d",
+        printf("\n\n>>> counter, event global_id, LB, bc_id, lvl1_id, l1tt:"
+               "%zu %d %d %d %d %d\n",
                iEntry,
                0, //info.global_id(),
                info->lumiBlock(),
                info->bcid(),
                info->extendedLevel1ID(),
                info->level1TriggerType());
-        */
+        /**/
 
         const xAOD::L1TopoRawDataContainer *l1toporawdatas = nullptr;
         event.retrieve(l1toporawdatas, "L1TopoRawData");
 
         // auto l1rd_it = l1toporawdatas->begin();
         // auto l1rd_it_end = l1toporawdatas->end();
-
+        int number_of_headers = 0;
+        int number_of_l1topotob = 0;
         for(auto &l1topo : *l1toporawdatas) {
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
                     auto header = L1Topo::Header(word);
                     cout<<header<<endl;
+                    number_of_headers += 1;
                 } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
                     cout<<tob<<endl;
                     cout<<"dataword "<<std::hex<<word<<std::dec<<endl;
+                    number_of_l1topotob +=1;
                     // todo 
                     // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
                     // check fibers errors (see fibers in monitoring) -- status flag
@@ -87,7 +91,12 @@ int main(int argc, char* argv[])
                 }
             } // for(word)
         } // for(l1topo)
-
+        printf("\nin this event we retrieved"
+               " %d L1Topo::BlockTypes::HEADER words"
+               " and %d L1Topo::BlockTypes::L1TOPO_TOB words\n",
+               number_of_headers,
+               number_of_l1topotob);
+        
         // const xAOD::ElectronContainer* electrons;
         // CHECK( event.retrieve(electrons, "ElectronCollection") );
         // auto el_it      = electrons->begin();
