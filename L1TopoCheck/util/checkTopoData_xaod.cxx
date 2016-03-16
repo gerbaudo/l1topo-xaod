@@ -53,11 +53,11 @@ int main(int argc, char* argv[])
 
         const xAOD::EventInfo *info = nullptr;
         event.retrieve(info, "EventInfo");
-        printf("\n\n>>> counter, event global_id, LB, bc_id, lvl1_id, l1tt:"
-               "%zu %d %d %d %d %d\n",
+        printf("\n\n>>> entry %zu, run %d, LB %d, event %llu, bc_id %d, lvl1_id %d, l1tt %d\n",
                iEntry,
-               0, //info.global_id(),
+               info->runNumber(),
                info->lumiBlock(),
+               info->eventNumber(),
                info->bcid(),
                info->extendedLevel1ID(),
                info->level1TriggerType());
@@ -75,12 +75,12 @@ int main(int argc, char* argv[])
             for(auto word : l1topo->dataWords()){
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
                     auto header = L1Topo::Header(word);
-                    cout<<header<<endl;
+                    cout<<"DG L1Topo::header: "<<header<<endl;
                     number_of_headers += 1;
                 } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
                     cout<<tob<<endl;
-                    cout<<"dataword "<<std::hex<<word<<std::dec<<endl;
+                    cout<<"DG L1Topo::L1TopoTOB "<<std::hex<<word<<std::dec<<endl;
                     number_of_l1topotob +=1;
                     // todo 
                     // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
