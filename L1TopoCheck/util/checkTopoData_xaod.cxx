@@ -103,6 +103,19 @@ int main(int argc, char* argv[])
                     // run monitoring with debug on and get the output to compare against
                 } else if(L1Topo::BlockTypes::MUON_TOB==L1Topo::blockType(word)) {
                     cout<<"got moun tob "<<std::hex<<word<<std::dec<<endl;
+                    else if ((m_scheme == miniroi2cands16bitFinal1) || (m_scheme == miniroi2cands16bitFinal2)) {
+      for (unsigned int mioct = 0; mioct < dataWords.size(); ++mioct) {
+        int nFwdEtaBins = 1;
+        if (m_scheme == miniroi2cands16bitFinal2) nFwdEtaBins = 2;
+        std::vector<MIOCTPhase0TopoRoI*> roisInMioct = decode_miniroi2cands16bitFinal(dataWords[mioct], mioct, nFwdEtaBins);
+        if (m_outputLevel >= INFO) {
+          std::cout << "  Decoded " << get_binrep_boolvec(dataWords[mioct]) << " => found "
+          << roisInMioct.size() << " RoIs" << std::endl;
+        }
+        rois.insert(rois.end(), roisInMioct.begin(), roisInMioct.end());
+      }
+                        73    }
+
                 }
             } // for(word)
         } // for(l1topo)
