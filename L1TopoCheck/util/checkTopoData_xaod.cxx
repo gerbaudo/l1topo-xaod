@@ -73,6 +73,21 @@ int main(int argc, char* argv[])
         for(auto &l1topo : *l1toporawdatas) {
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
+                const L1Topo::BlockTypes blockType = L1Topo::blockType(word);
+                switch(blockType) {
+                case L1Topo::BlockTypes::HEADER:     cout<<"HEADER"<<endl;      break;
+                case L1Topo::BlockTypes::FIBRE:      cout<<"FIBRE"<<endl;       break;
+                case L1Topo::BlockTypes::STATUS:     cout<<"STATUS"<<endl;      break;
+                case L1Topo::BlockTypes::EM_TOB:     cout<<"EM_TOB"<<endl;      break;
+                case L1Topo::BlockTypes::TAU_TOB:    cout<<"TAU_TOB"<<endl;     break;
+                case L1Topo::BlockTypes::MUON_TOB:   cout<<"MUON_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::JET1_TOB:   cout<<"JET1_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::JET2_TOB:   cout<<"JET2_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::ENERGY_TOB: cout<<"ENERGY_TOB"<<endl;  break;
+                case L1Topo::BlockTypes::L1TOPO_TOB: cout<<"L1TOPO_TOB"<<endl;  break;
+                default:
+                    cout<<"unknown blockType for word "<<word<<endl;
+                }
                 if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
                     auto header = L1Topo::Header(word);
                     cout<<"DG L1Topo::header: "<<header<<endl;
@@ -86,8 +101,8 @@ int main(int argc, char* argv[])
                     // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
                     // check fibers errors (see fibers in monitoring) -- status flag
                     // run monitoring with debug on and get the output to compare against
-
-
+                } else if(L1Topo::BlockTypes::MUON_TOB==L1Topo::blockType(word)) {
+                    cout<<"got moun tob "<<std::hex<<word<<std::dec<<endl;
                 }
             } // for(word)
         } // for(l1topo)
