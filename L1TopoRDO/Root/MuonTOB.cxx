@@ -1,51 +1,89 @@
-#include <iostream>
-#include <iomanip>
-#include <bitset>
-#include <vector>
-#include "L1TopoRDO/L1TopoTOB.h"
+#include "L1TopoRDO/MuonTOB.h"
 #include "L1TopoRDO/Helpers.h"
 #include "L1TopoRDO/BlockTypes.h"
 #include "L1TopoRDO/MIOCTPhase0TopoRoI.h"
 #include "L1TopoRDO/MuCTPIConstants.h"
 
+#include "TMath.h"
+
+#include <iostream>
+#include <iomanip>
+#include <bitset>
+#include <vector>
+#include <cmath>
+
 namespace L1Topo {
 
-
+using std::vector;
+// DG-2016-03-23
+// this is a temporary declaration of the functions from Christian's encoder/decoder
 std::vector<MIOCTPhase0TopoRoI> decode(const std::vector<std::vector<bool> >& dataWords);
 std::vector<MIOCTPhase0TopoRoI> decode_miniroi2cands16bitFinal(const std::vector<bool>& dataWord,
                                                                unsigned int mioct, int nFwdEtaBins);
 MIOCTPhase0TopoRoI decodeRoIFromBits(const std::vector<bool>& bits, const int nEtaBits,
                                      const int nPhiBits, const int nPtBits, const bool decodeCharge,
-                                     const int mioct, const int nFwdEtaBins)
+                                     const int mioct, const int nFwdEtaBins);
 
-L1TopoTOB::L1TopoTOB(const int32_t word)
+int decodeIntFromBits(const std::vector<bool>& bits);
+std::vector<bool> uint32_t2bits(const uint32_t &v);
+
+MuonTOB::MuonTOB(const int32_t word)
     : m_word(word){
 
     this->decode();
 }
 
-void L1TopoTOB::decode()
+void MuonTOB::decode()
 {
-    /// \todo how do we go from 32-bit to 16-bit? are we just talking about 2 datawords?
-    // anyway for now pretend we know how to do this and convert to vec<bool>
-    std::vector<std::vector<bool> > dataWords;
-    std::vector<MIOCTPhase0TopoRoI> minirois = decode(dataWords);
+    const uint32_t eight_1 = 0xff;
+    m_candidate1_bits = m_word & eight_1;
+    m_candidate2_bits = (m_word >> m_bits_per_candidate) & eight_1;
+
+    const int nEtaBits = 3;
+    const int nPhiBits = 3;
+    const int nPtBits = 2;
+    const bool decodeCharge = false;
+    const int mioct = -1; /// \todo DG-2016-03-24
+    const int nFwdEtaBins = 1; // from 'miniroi2cands16bitFinal1' encoding
+    vector<bool> bitsc1 = uint32_t2bits(m_candidate1_bits);
+    vector<bool> bitsc2 = uint32_t2bits(m_candidate2_bits);
+    bitsc1.resize(8);
+    bitsc2.resize(8);
+    MIOCTPhase0TopoRoI candidate1 = decodeRoIFromBits(bitsc1, nEtaBits, nPhiBits, nPtBits,
+                                                      decodeCharge, mioct, nFwdEtaBins);
+    MIOCTPhase0TopoRoI candidate2 = decodeRoIFromBits(bitsc2, nEtaBits, nPhiBits, nPtBits,
+                                                      decodeCharge, mioct, nFwdEtaBins);
+    return;
 }
- 
+
+bool MuonTOB::overflow() const
+{
+    // both pt bits of C2 set to 1
+    return m_candidate2_bits & 0x03;
+}
+bool MuonTOB::delayed() const
+{
+    return (m_word >> m_delayed_bit_number) & 1;
+}
+bool MuonTOB::side() const
+{
+    return (m_word >> m_side_bit_number) & 1;
+}
+
 
 
 // this is where the decoding happens
 std::vector<MIOCTPhase0TopoRoI> decode(const std::vector<std::vector<bool> >& dataWords)
 {
-    
+    // bool verbose = false;
     std::vector<MIOCTPhase0TopoRoI> rois;
     for (unsigned int mioct = 0; mioct < dataWords.size(); ++mioct) {
         int nFwdEtaBins = 1;
         std::vector<MIOCTPhase0TopoRoI> roisInMioct = decode_miniroi2cands16bitFinal(dataWords[mioct], mioct, nFwdEtaBins);
-        if (m_outputLevel >= INFO) {
-            std::cout << "  Decoded " << get_binrep_boolvec(dataWords[mioct]) << " => found "
-                      << roisInMioct.size() << " RoIs" << std::endl;
-        }
+        // if (verbose) {
+        //     std::cout << "  Decoded " << get_binrep_boolvec(dataWords[mioct]) << " => found "
+        //               << roisInMioct.size() << " RoIs" << std::endl;
+        // }
         rois.insert(rois.end(), roisInMioct.begin(), roisInMioct.end());
     }
     return rois;
@@ -62,6 +100,7 @@ std::vector<MIOCTPhase0TopoRoI> decode(const std::vector<std::vector<bool> >& da
 std::vector<MIOCTPhase0TopoRoI> decode_miniroi2cands16bitFinal(const std::vector<bool>& dataWord,
                                                                unsigned int mioct, int nFwdEtaBins)
 {
+    bool verbose = false;
     std::vector<MIOCTPhase0TopoRoI> rois;
     if (dataWord.size() != 16) {
         std::cout << "In decode_miniroi2cands16bitFinal(): ERROR - asked to decode MIOCT data word with "
@@ -75,7 +114,7 @@ std::vector<MIOCTPhase0TopoRoI> decode_miniroi2cands16bitFinal(const std::vector
         std::vector<bool>::const_iterator first = dataWord.begin()+roi*number_of_bits_per_candidate;
         std::vector<bool>::const_iterator last = dataWord.begin()+(roi+1)*number_of_bits_per_candidate;
         std::vector<bool> bits(first, last);
-        if (m_outputLevel >= DEBUG) {
+        if (verbose) {
             std::cout << "Will now decode " << bits.size() << " bits representing an RoI" << std::endl;
         }
         const int eta_means_no_candidate = 7; // the eta value 0b111 = 7 is reserved to signal no candidate
@@ -83,8 +122,8 @@ std::vector<MIOCTPhase0TopoRoI> decode_miniroi2cands16bitFinal(const std::vector
             continue;
         }
         rois.push_back(decodeRoIFromBits(bits, 3, 3, 2, false, mioct, nFwdEtaBins));
-        if (m_outputLevel >= DEBUG) {
-            (*rois[rois.size()-1]).print();
+        if (verbose) {
+            (rois[rois.size()-1]).print();
         }
         // check for overflow in the octant (11 in second candidate's pT bits)
         if (roi == 1) {
@@ -94,18 +133,18 @@ std::vector<MIOCTPhase0TopoRoI> decode_miniroi2cands16bitFinal(const std::vector
               << decodeIntFromBits(std::vector<bool>(last-2, last)) << std::endl;
             */
             if (decodeIntFromBits(std::vector<bool>(last-2, last)) == 3) {
-                (*rois[rois.size()-1]).setThrNumber(0); // change to mock pT value since unknown
-                (*rois[rois.size()-1]).setpT(0); // change to mock pT value since unknown
+                (rois[rois.size()-1]).setThrNumber(0); // change to mock pT value since unknown
+                (rois[rois.size()-1]).setpT(0); // change to mock pT value since unknown
                 //rois.push_back(new MIOCTPhase0TopoRoI(0, 0, 0, 0, false, 0)); // for debugging: dummy RoI to show overflow
                 /*std::cout << "Added dummy RoI since there was overflow: pT = "
                   << get_binrep_boolvec(std::vector<bool>(first+6, first+8)) << std::endl;*/
             }
         }
     }
-    if (m_outputLevel >= DEBUG) {
-        std::cout << "Decoded dataword " << get_binrep_boolvec(dataWord)
-                  << ", found " << rois.size() << " RoI(s)" << std::endl;
-    }
+    // if (verbose) {
+    //     std::cout << "Decoded dataword " << get_binrep_boolvec(dataWord)
+    //               << ", found " << rois.size() << " RoI(s)" << std::endl;
+    // }
     return rois;
 }
 
@@ -197,8 +236,15 @@ int decodeIntFromBits(const std::vector<bool>& bits) {
     for (unsigned int bit = 0; bit < bits.size(); ++bit) {
         x = (x << 1) | bits[bit];
     }
-    //std::cout << "  decoded bits " << get_binrep_boolvec(bits) << " => " << x << std::endl;
     return x;
+}
+
+std::vector<bool> uint32_t2bits(const uint32_t &v) {
+    std::bitset<32> bits(v);
+    vector<bool> vbits(bits.size());
+    for(size_t i=0; i<bits.size(); ++i)
+        vbits[i] = bits[i];
+    return vbits;
 }
 
 } // namespace L1Topo
