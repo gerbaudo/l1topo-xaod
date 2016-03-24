@@ -5,6 +5,7 @@
 #include "L1TopoRDO/MuCTPIConstants.h"
 
 #include "TMath.h"
+#include "TVector2.h"
 
 #include <iostream>
 #include <iomanip>
@@ -26,6 +27,7 @@ MIOCTPhase0TopoRoI decodeRoIFromBits(const std::vector<bool>& bits, const int nE
 
 int decodeIntFromBits(const std::vector<bool>& bits);
 std::vector<bool> uint32_t2bits(const uint32_t &v);
+//  end of temporary declarations
 
 MuonTOB::MuonTOB(const int32_t word)
     : m_word(word){
@@ -35,20 +37,18 @@ MuonTOB::MuonTOB(const int32_t word)
 
 void MuonTOB::decode()
 {
-    const uint32_t eight_1 = 0xff;
+    const uint32_t eight_1 = 0b11111111;
     m_candidate1_bits = m_word & eight_1;
-    m_candidate2_bits = (m_word >> m_bits_per_candidate) & eight_1;
+    m_candidate2_bits = (m_word >> m_number_of_bits_per_candidate) & eight_1;
 
-    const int nEtaBits = 3;
-    const int nPhiBits = 3;
-    const int nPtBits = 2;
+    const int nEtaBits = m_number_of_eta_bits;
+    const int nPhiBits = m_number_of_phi_bits;
+    const int nPtBits = m_number_of_pt_bits;
     const bool decodeCharge = false;
-    const int mioct = -1; /// \todo DG-2016-03-24
+    const int mioct = octant(); // DG-2016-03-24 check with Olya
     const int nFwdEtaBins = 1; // from 'miniroi2cands16bitFinal1' encoding
-    vector<bool> bitsc1 = uint32_t2bits(m_candidate1_bits);
-    vector<bool> bitsc2 = uint32_t2bits(m_candidate2_bits);
-    bitsc1.resize(8);
-    bitsc2.resize(8);
+    vector<bool> bitsc1 = uint32_t2bits(m_candidate1_bits); bitsc1.resize(8);
+    vector<bool> bitsc2 = uint32_t2bits(m_candidate2_bits); bitsc2.resize(8);
     MIOCTPhase0TopoRoI candidate1 = decodeRoIFromBits(bitsc1, nEtaBits, nPhiBits, nPtBits,
                                                       decodeCharge, mioct, nFwdEtaBins);
     MIOCTPhase0TopoRoI candidate2 = decodeRoIFromBits(bitsc2, nEtaBits, nPhiBits, nPtBits,
@@ -59,7 +59,9 @@ void MuonTOB::decode()
 bool MuonTOB::overflow() const
 {
     // both pt bits of C2 set to 1
-    return m_candidate2_bits & 0x03;
+    // DG-2016-03-24 ask Olya whether it's C1 or C2; the order seems to be swapped between the xml and the wiki
+    const uint32_t two_1 = 0b11;
+    return m_candidate2_bits & two_1;
 }
 bool MuonTOB::delayed() const
 {
@@ -70,25 +72,85 @@ bool MuonTOB::side() const
     return (m_word >> m_side_bit_number) & 1;
 }
 
-
-
-// this is where the decoding happens
-std::vector<MIOCTPhase0TopoRoI> decode(const std::vector<std::vector<bool> >& dataWords)
+uint32_t MuonTOB::signed_side() const
 {
-    // bool verbose = false;
-    std::vector<MIOCTPhase0TopoRoI> rois;
-    for (unsigned int mioct = 0; mioct < dataWords.size(); ++mioct) {
-        int nFwdEtaBins = 1;
-        std::vector<MIOCTPhase0TopoRoI> roisInMioct = decode_miniroi2cands16bitFinal(dataWords[mioct], mioct, nFwdEtaBins);
-        // if (verbose) {
-        //     std::cout << "  Decoded " << get_binrep_boolvec(dataWords[mioct]) << " => found "
-        //               << roisInMioct.size() << " RoIs" << std::endl;
-        // }
-        rois.insert(rois.end(), roisInMioct.begin(), roisInMioct.end());
-    }
-    return rois;
+    return side() ? -1 : +1;
 }
 
+uint32_t MuonTOB::octant() const
+{
+    const uint32_t three_1 = 0b111;
+    return (m_word >> m_octant_lower_bit_number) & three_1;
+}
+
+uint32_t MuonTOB::word() const
+{
+    return m_word;
+}
+
+uint32_t MuonTOB::candidate1() const
+{
+    return m_candidate1_bits;
+}
+
+uint32_t MuonTOB::candidate2() const
+{
+    return m_candidate2_bits;
+}
+
+bool MuonTOB::has_candidate1() const
+{
+    return decode_eta_from_8_bits(m_candidate1_bits) != m_eta_means_no_candidates;
+}
+
+bool MuonTOB::has_candidate2() const
+{
+    return decode_eta_from_8_bits(m_candidate2_bits) != m_eta_means_no_candidates;
+}
+
+uint32_t MuonTOB::decode_eta_from_8_bits(const uint32_t &bits)
+{
+    const uint32_t three_1 = 0b111;
+    return (bits >> 5 ) & three_1;
+}
+
+uint32_t MuonTOB::decode_phi_from_8_bits(const uint32_t &bits)
+{
+    const uint32_t three_1 = 0b111;
+    return (bits >> 2 ) & three_1;
+}
+
+uint32_t MuonTOB::decode_pt_from_8_bits(const uint32_t &bits)
+{
+    const uint32_t two_1 = 0b11;
+    return bits & two_1;
+}
+
+MuonCandidate::MuonCandidate(const int32_t full_word, const int32_t candidate_word):
+    m_eta(0.0),
+    m_phi(0.0),
+    m_pt(0)
+{
+    MuonTOB tob(full_word);
+    int side = tob.signed_side();
+    int octant = tob.octant();
+    int eta = MuonTOB::decode_eta_from_8_bits(candidate_word);
+    int phi = MuonTOB::decode_phi_from_8_bits(candidate_word);
+    // convert the bin values to coordinates, corresponding to the center values of the bins
+    bool isForward = eta==6;
+    const double phi_octant_width = TMath::Pi()/4.0;
+    const double phi_bin_width = mioctDeltaPhiMax / 8.0; // 8 = pow(2, nPhiBits=3)
+    m_eta = (isForward ?
+             (mioctMinEtaForward+mioctMaxEtaForward)/2 : // fw candidate in bin 6
+             mioctMinEtaBarrel+(eta+0.5)*(mioctMaxEtaEndcap-mioctMinEtaBarrel)/6); // barrel or endcap
+    m_eta *= side;
+    // DG-2016-03-24 I dont understand the line below; ask Olya or Christian.
+    // eta *= ((octant > 7) ? 1 : -1); // set sign of eta based on implicit hemisphere from MIOCT number
+    m_phi = TVector2::Phi_mpi_pi(mioct0MinPhi + phi_octant_width*octant + (phi+0.5)*phi_bin_width);
+    if(isForward) // if this is a forward candidate, compensate for difference in MIOCT phi coverage
+        m_phi += 0.14;
+    m_pt = MuonTOB::decode_pt_from_8_bits(candidate_word);
+}
 
 /**
  * Does the decoding of one MIOCT for the miniroi2cands16bitFinal[1,2] schemes
@@ -248,3 +310,34 @@ std::vector<bool> uint32_t2bits(const uint32_t &v) {
 }
 
 } // namespace L1Topo
+
+std::ostream& operator<<(std::ostream& os, const L1Topo::MuonTOB& c)
+{
+    os << "     MuonTOB: "
+       << " side" << c.side()
+       << " octant "<< c.octant()
+       << " delayed "<< c.delayed()
+       << " candidate 1 "<< std::bitset<8>(c.candidate1());
+    if(c.has_candidate1())
+        os <<"("<<L1Topo::MuonCandidate(c.word(), c.candidate1())<<")";
+    else
+        os <<"(--)";
+    os << " candidate 2 "<< std::bitset<8>(c.candidate2());
+    if(c.has_candidate2())
+        os <<"("<<L1Topo::MuonCandidate(c.word(), c.candidate2())<<")";
+    else
+        os <<"(--)";
+    os << std::dec << "\n";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const L1Topo::MuonCandidate& c)
+{
+  os << "     MuonCandidate: "
+     << " pt "<<c.m_pt
+     << " eta "<<c.m_eta
+     << " phi "<<c.m_phi;
+  return os;
+}
+
+
