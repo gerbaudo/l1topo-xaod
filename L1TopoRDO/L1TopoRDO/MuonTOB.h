@@ -78,9 +78,18 @@ namespace L1Topo {
   class MuonCandidate {
   public:
     MuonCandidate(const int32_t full_word, const int32_t candidate_word);
-    double m_eta;
-    double m_phi;
-    int m_pt;
+    double m_eta; ///< value from MIOCTPhase0TopoRoI
+    double m_phi; ///< valued from MIOCTPhase0TopoRoI
+
+    int m_pt_index;
+    int m_side;
+    int m_octant;
+    int m_eta_index;
+    int m_phi_index;
+
+    const int pt_from_lut() const;
+    const int eta_from_lut() const;
+    const int phi_from_lut() const;
   };
 
 } // namespace L1Topo

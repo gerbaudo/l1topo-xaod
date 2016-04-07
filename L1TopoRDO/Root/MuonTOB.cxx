@@ -3,6 +3,7 @@
 #include "L1TopoRDO/BlockTypes.h"
 #include "L1TopoRDO/MIOCTPhase0TopoRoI.h"
 #include "L1TopoRDO/MuCTPIConstants.h"
+#include "L1TopoRDO/muon_LUT.h"
 
 #include "TMath.h"
 #include "TVector2.h"
@@ -129,28 +130,51 @@ uint32_t MuonTOB::decode_pt_from_8_bits(const uint32_t &bits)
 MuonCandidate::MuonCandidate(const int32_t full_word, const int32_t candidate_word):
     m_eta(0.0),
     m_phi(0.0),
-    m_pt(0)
+    m_pt_index(0),
+    m_side(0),
+    m_octant(0),
+    m_eta_index(0),
+    m_phi_index(0)
 {
     MuonTOB tob(full_word);
-    int side = tob.signed_side();
-    int octant = tob.octant();
-    int eta = MuonTOB::decode_eta_from_8_bits(candidate_word);
-    int phi = MuonTOB::decode_phi_from_8_bits(candidate_word);
+    m_side = tob.signed_side();
+    m_octant = tob.octant();
+    m_eta_index = MuonTOB::decode_eta_from_8_bits(candidate_word);
+    m_phi_index = MuonTOB::decode_phi_from_8_bits(candidate_word);
     // convert the bin values to coordinates, corresponding to the center values of the bins
-    bool isForward = eta==6;
+    bool isForward = m_eta_index==6;
     const double phi_octant_width = TMath::Pi()/4.0;
     const double phi_bin_width = mioctDeltaPhiMax / 8.0; // 8 = pow(2, nPhiBits=3)
     m_eta = (isForward ?
              (mioctMinEtaForward+mioctMaxEtaForward)/2 : // fw candidate in bin 6
-             mioctMinEtaBarrel+(eta+0.5)*(mioctMaxEtaEndcap-mioctMinEtaBarrel)/6); // barrel or endcap
-    m_eta *= side;
+             mioctMinEtaBarrel+(m_eta_index+0.5)*(mioctMaxEtaEndcap-mioctMinEtaBarrel)/6); // barrel or endcap
+    m_eta *= m_side;
     // DG-2016-03-24 I dont understand the line below; ask Olya or Christian.
     // eta *= ((octant > 7) ? 1 : -1); // set sign of eta based on implicit hemisphere from MIOCT number
-    m_phi = TVector2::Phi_mpi_pi(mioct0MinPhi + phi_octant_width*octant + (phi+0.5)*phi_bin_width);
+    m_phi = TVector2::Phi_mpi_pi(mioct0MinPhi + phi_octant_width*m_octant +
+                                 (m_phi_index+0.5)*phi_bin_width);
     if(isForward) // if this is a forward candidate, compensate for difference in MIOCT phi coverage
         m_phi += 0.14;
-    m_pt = MuonTOB::decode_pt_from_8_bits(candidate_word);
+    m_pt_index = MuonTOB::decode_pt_from_8_bits(candidate_word);
 }
+
+//----------------------------------------------------------
+const int MuonCandidate::pt_from_lut() const
+{
+    return l1topo::MuonPtLut[m_pt_index];
+}
+//----------------------------------------------------------
+const int MuonCandidate::eta_from_lut() const
+{
+    // \TODO DG check here with Marek the sign of the eta index (does it include side?)
+    return l1topo::MuonEtaLut[m_octant][m_eta_index][m_phi_index];
+}
+//----------------------------------------------------------
+const int MuonCandidate::phi_from_lut() const
+{
+    return l1topo::MuonPhiLut[m_octant][m_eta_index][m_phi_index];
+}
+//----------------------------------------------------------
 
 /**
  * Does the decoding of one MIOCT for the miniroi2cands16bitFinal[1,2] schemes
@@ -333,10 +357,15 @@ std::ostream& operator<<(std::ostream& os, const L1Topo::MuonTOB& c)
 
 std::ostream& operator<<(std::ostream& os, const L1Topo::MuonCandidate& c)
 {
-  os << "     MuonCandidate: "
-     << " pt "<<c.m_pt
-     << " eta "<<c.m_eta
-     << " phi "<<c.m_phi;
+  os << "     MuonCandidate: indices "
+     << " pt "<<c.m_pt_index
+     << " eta "<<c.m_eta_index
+     << " phi "<<c.m_phi_index
+     <<" (LUT values: "
+     <<" pt "<<c.pt_from_lut()
+     <<" eta "<<c.eta_from_lut()
+     <<" phi "<<c.phi_from_lut()
+     <<")";
   return os;
 }
 
