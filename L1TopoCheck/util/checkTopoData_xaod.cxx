@@ -8,7 +8,10 @@
 #include "xAODTrigL1Calo/L1TopoRawDataContainer.h"
 #include "L1TopoRDO/BlockTypes.h"
 #include "L1TopoRDO/Header.h"
+#include "L1TopoRDO/Helpers.h"
+#include "L1TopoRDO/Fibre.h"
 #include "L1TopoRDO/L1TopoTOB.h"
+#include "L1TopoRDO/Status.h"
 
 #include "TChain.h"
 #include "TError.h"
@@ -70,6 +73,9 @@ int main(int argc, char* argv[])
         // auto l1rd_it_end = l1toporawdatas->end();
         int number_of_headers = 0;
         int number_of_l1topotob = 0;
+        // initialise header: beware, this can make a valid-looking header and be misinterpreted; set version 15, BCN -7, which is unlikely:
+        L1Topo::Header header(0xf,0,0,0,0,1,0x7);
+
         for(auto &l1topo : *l1toporawdatas) {
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
@@ -88,16 +94,28 @@ int main(int argc, char* argv[])
                 default:
                     cout<<"unknown blockType for word "<<word<<endl;
                 }
-                if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
-                    auto header = L1Topo::Header(word);
+                if (L1Topo::BlockTypes::HEADER==blockType){
+                    header = L1Topo::Header(word);
                     cout<<"DG L1Topo::header: "<<header<<endl;
                     number_of_headers += 1;
-                } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
+                } else if(L1Topo::BlockTypes::FIBRE==blockType) {
+                    auto fibreBlock = L1Topo::Fibre(word);
+                    cout<<fibreBlock<<endl;
+                } else if(L1Topo::BlockTypes::STATUS==blockType) {
+                    auto status = L1Topo::Status(word);
+                    cout<<status<<endl;
+                } else if(L1Topo::BlockTypes::L1TOPO_TOB==blockType) {
+                    if(header.bcn_offset()!=0) {
+                        cout<<"skipping L1TopoTOB "<< L1Topo::formatHex8(word)
+                            <<" because it comes after header with bcn : "<<header.bcn_offset()
+                            <<endl;
+                        continue;
+                    }
                     auto tob = L1Topo::L1TopoTOB(word);
                     cout<<tob<<endl;
                     cout<<"DG L1Topo::L1TopoTOB "<<std::hex<<word<<std::dec<<endl;
                     number_of_l1topotob +=1;
-                    // todo 
+                    // todo
                     // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
                     // check fibers errors (see fibers in monitoring) -- status flag
                     // run monitoring with debug on and get the output to compare against
@@ -111,7 +129,7 @@ int main(int argc, char* argv[])
                " and %d L1Topo::BlockTypes::L1TOPO_TOB words\n",
                number_of_headers,
                number_of_l1topotob);
-        
+
         // const xAOD::ElectronContainer* electrons;
         // CHECK( event.retrieve(electrons, "ElectronCollection") );
         // auto el_it      = electrons->begin();
