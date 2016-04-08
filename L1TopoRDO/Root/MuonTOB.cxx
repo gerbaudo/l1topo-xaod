@@ -166,13 +166,16 @@ const int MuonCandidate::pt_from_lut() const
 //----------------------------------------------------------
 const int MuonCandidate::eta_from_lut() const
 {
-    // \TODO DG check here with Marek the sign of the eta index (does it include side?)
-    return l1topo::MuonEtaLut[m_octant][m_eta_index][m_phi_index];
+    const int unsigned_side = (m_side==-1 ? 0 : 1);
+    const int octant_index = unsigned_side*8 + m_octant/* /2 */; // reflect calculation in vhdl?
+    return l1topo::MuonEtaLut[octant_index][m_eta_index][m_phi_index];
 }
 //----------------------------------------------------------
 const int MuonCandidate::phi_from_lut() const
 {
-    return l1topo::MuonPhiLut[m_octant][m_eta_index][m_phi_index];
+    const int unsigned_side = (m_side==-1 ? 0 : 1);
+    const int octant_index = unsigned_side*8 + m_octant/* /2 */; // reflect calculation in vhdl?
+    return l1topo::MuonPhiLut[octant_index][m_eta_index][m_phi_index];
 }
 //----------------------------------------------------------
 
