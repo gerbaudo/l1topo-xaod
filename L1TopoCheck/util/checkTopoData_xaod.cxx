@@ -10,7 +10,9 @@
 #include "L1TopoRDO/Fibre.h"
 #include "L1TopoRDO/Header.h"
 #include "L1TopoRDO/Helpers.h"
+#include "L1TopoRDO/Fibre.h"
 #include "L1TopoRDO/L1TopoTOB.h"
+#include "L1TopoRDO/Status.h"
 
 #include "TChain.h"
 #include "TError.h"
@@ -31,6 +33,7 @@ int main(int argc, char* argv[])
         cout<<"Failed xAOD.Init()"<<endl;
 
     string default_input_file = "/afs/cern.ch/user/g/gerbaudo/public/tmp/for_simon/xAOD.L1Calo.00287924_lb0100.pool.root";
+    default_input_file = "/afs/cern.ch/user/b/beallen/public/ForDavide/Data16_cos.00291671.physics_L1Calo.part1.root";
     string input_filename = default_input_file;
 
     string treeName = "CollectionTree";
@@ -51,22 +54,24 @@ int main(int argc, char* argv[])
         event.getEntry(iEntry);
         cout<<" entry "<<iEntry<<endl;
 
-        /* event info not available in the test xaod
+        /**/ // event info not available in the test xaod
 
         const xAOD::EventInfo *info = nullptr;
         event.retrieve(info, "EventInfo");
-        printf("\n>>> counter, event global_id, LB, bc_id, lvl1_id, l1tt:"
-               "%zu %d %d %d %d %d",
+        printf("\n\n>>> entry %zu, run %d, LB %d, event %llu, bc_id %d, lvl1_id %d, l1tt %d\n",
                iEntry,
-               0, //info.global_id(),
+               info->runNumber(),
                info->lumiBlock(),
+               info->eventNumber(),
                info->bcid(),
                info->extendedLevel1ID(),
                info->level1TriggerType());
-        */
+        /**/
 
         const xAOD::L1TopoRawDataContainer *l1toporawdatas = nullptr;
         event.retrieve(l1toporawdatas, "L1TopoRawData");
+        int number_of_headers = 0;
+        int number_of_l1topotob = 0;
         // initialise header: beware, this can make a valid-looking
         // header and be misinterpreted; set version 15, BCN -7, which
         // is unlikely:
@@ -100,51 +105,80 @@ int main(int argc, char* argv[])
                     cout<<L1Topo::formatHex8(word)<<" (sourceId: "<<L1Topo::formatHex8(l1topo->sourceID())<<")"<<endl;
             }
         }
-        bool someWordsProcessed = false;
         int previousBunchNumber = 0;
         for(auto &l1topo : *l1toporawdatas) {
             if(not isL1topoDaqRobId(l1topo->sourceID()))
                 continue;
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
-                if (L1Topo::BlockTypes::HEADER==L1Topo::blockType(word)){
+                const L1Topo::BlockTypes blockType = L1Topo::blockType(word);
+                switch(blockType) {
+                case L1Topo::BlockTypes::HEADER:     cout<<"HEADER"<<endl;      break;
+                case L1Topo::BlockTypes::FIBRE:      cout<<"FIBRE"<<endl;       break;
+                case L1Topo::BlockTypes::STATUS:     cout<<"STATUS"<<endl;      break;
+                case L1Topo::BlockTypes::EM_TOB:     cout<<"EM_TOB"<<endl;      break;
+                case L1Topo::BlockTypes::TAU_TOB:    cout<<"TAU_TOB"<<endl;     break;
+                case L1Topo::BlockTypes::MUON_TOB:   cout<<"MUON_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::JET1_TOB:   cout<<"JET1_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::JET2_TOB:   cout<<"JET2_TOB"<<endl;    break;
+                case L1Topo::BlockTypes::ENERGY_TOB: cout<<"ENERGY_TOB"<<endl;  break;
+                case L1Topo::BlockTypes::L1TOPO_TOB: cout<<"L1TOPO_TOB"<<endl;  break;
+                default:
+                    cout<<"unknown blockType for word "<<word<<endl;
+                }
+                if (L1Topo::BlockTypes::HEADER==blockType){
                     header = L1Topo::Header(word);
-                    bool newBcn = previousBunchNumber!=header.bcn();
-                    if(someWordsProcessed and newBcn) {
-                        cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
-                        cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
-                        triggerBits.reset();
-                        overflowBits.reset();
+                    cout<<"DG L1Topo::header: "<<header<<endl;
+                    number_of_headers += 1;
+                } else if(L1Topo::BlockTypes::FIBRE==blockType) {
+                    auto fibreBlock = L1Topo::Fibre(word);
+                    cout<<fibreBlock<<endl;
+                } else if(L1Topo::BlockTypes::STATUS==blockType) {
+                    auto status = L1Topo::Status(word);
+                    cout<<status<<endl;
+                } else if(L1Topo::BlockTypes::L1TOPO_TOB==blockType) {
+                    if(header.bcn_offset()!=0) {
+                        cout<<"skipping L1TopoTOB "<< L1Topo::formatHex8(word)
+                            <<" because it comes after header with bcn : "<<header.bcn_offset()
+                            <<endl;
+                        continue;
                     }
-                    previousBunchNumber = header.bcn();
-                    cout<<header<<endl;
-                } else if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word)) {
                     auto tob = L1Topo::L1TopoTOB(word);
                     cout<<"dataword 0x"<<std::hex<<word<<std::dec<<endl;
                     cout<<tob<<endl;
-                    // collect trigger and overflow bits in bitsets
-                    for (unsigned int i=0; i<8; ++i){  // 8 bits/word?
-                        unsigned int index = L1Topo::triggerBitIndexNew(l1topo->sourceID(), tob, i);
-                        triggerBits[index]  = (tob.trigger_bits()>>i)&1;
-                        overflowBits[index] = (tob.overflow_bits()>>i)&1;
-                    }
-                    someWordsProcessed = true;
-                } else if(L1Topo::BlockTypes::FIBRE==L1Topo::blockType(word)) {
+                    cout<<"DG L1Topo::L1TopoTOB "<<std::hex<<word<<std::dec<<endl;
+                    number_of_l1topotob +=1;
+                    // todo
+                    // unsigned int index = L1Topo::triggerBitIndexNew(rdo.getSourceID(),tob,i);
                     // check fibers errors (see fibers in monitoring) -- status flag
-                    auto fibreBlock = L1Topo::Fibre(word);
-                    auto statuses = fibreBlock.status();
-                    for (unsigned int i=0; i<statuses.size(); ++i){
-                        if (statuses.at(i)!=0){
-                            cout<<" Warning: Fibre status set for fibre "
-                                <<i<<" of ROB "<<L1Topo::formatHex8(l1topo->sourceID())<<" header "<<header<<endl;
-                        }
-                    }
+                    // run monitoring with debug on and get the output to compare against
+                } else if(L1Topo::BlockTypes::MUON_TOB==L1Topo::blockType(word)) {
+                    cout<<"got moun tob "<<std::hex<<word<<std::dec<<endl;
                 }
             } // for(word)
         } // for(l1topo)
-        if(someWordsProcessed) {
-            cout<<"trigger  bits from RoI Cnv: " <<triggerBits <<endl;
-            cout<<"overflow bits from RoI Cnv: " <<overflowBits<<endl;
-        }
+        printf("\nin this event we retrieved"
+               " %d L1Topo::BlockTypes::HEADER words"
+               " and %d L1Topo::BlockTypes::L1TOPO_TOB words\n",
+               number_of_headers,
+               number_of_l1topotob);
+
+        // const xAOD::ElectronContainer* electrons;
+        // CHECK( event.retrieve(electrons, "ElectronCollection") );
+        // auto el_it      = electrons->begin();
+        // auto el_it_last = electrons->end();
+        // unsigned int i = 0;
+        // for (; el_it != el_it_last; ++el_it, ++i) {
+        //     const xAOD::Electron* el = *el_it;
+        //     std::cout << "Electron " << i << std::endl;
+        //     std::cout << "xAOD/raw pt = " << el->pt() << std::endl;
+        //     Info (APP_NAME,"Electron #%d", i);
+
+        //     const Root::TResult result= myEgCorrections.calculate(*el);
+
+        //     Info( APP_NAME,"===>>> Result 0 position %f ",result.getResult(0));
+
+        // }
+
     } // for iEntry
 }

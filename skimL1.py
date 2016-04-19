@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import sys
+import itertools
 from math import pi,sqrt,cos
 import array
 
 import ROOT
 
 mev2gev = 1.0E-3
+
+# L1_isPassedBeforePrescale
 
 def main():
     # init: load packages, setup xAOD infrastructure
@@ -34,7 +37,8 @@ def main():
     for input_file in inputFiles:
         ch.Add(input_file)
         print input_file
-    t = ROOT.xAOD.MakeTransientTree( ch ) #f, treeName)
+    # t = ROOT.xAOD.MakeTransientTree( ch ) #f, treeName)
+    t = ROOT.xAOD.MakeTransientTree(ch, ROOT.xAOD.TEvent.kBranchAccess)
 
     initialize_trigger_decision_tool()
     trigList = get_muon_triggers_to_process()
@@ -100,7 +104,7 @@ def main():
             print("%d / %d" % (runNumber[0], eventNumber[0]))
             # continue
             # print_l1met(l1met, l1metp4)
-            # print_l1jets(l1jets)
+            print_l1jets(l1jets)
 
         l1emtaus= t.LVL1EmTauRoIs
         if verbose:
@@ -183,21 +187,52 @@ def print_l1emtaus(l1emtaus):
         # http://acode-browser.usatlas.bnl.gov/lxr/source/atlas/Event/xAOD/xAODTrigger/xAODTrigger/versions/EmTauRoI_v2.h
         # print("l1emtau[%d]: et %.2f emIso %.2f eta %.2f phi %.2f" %
         #       (iEmtau, l1emtau.eT(), l1emtau.emIsol(), l1emtau.eta(), l1emtau.phi()))
-        print("[%03d]: %d\t%d\t%d\t%d" %
+        print("[%03d]: %d\t%05d\t%05d\t%05d" %
               (iEmtau,
-               int(mev2gev*l1emtau.eT()), int(mev2gev*l1emtau.emIsol()),
-               int(10*l1emtau.eta()), int(10*l1emtau.phi())))
+               int(twice*mev2gev*l1emtau.eT()), int(twice*mev2gev*l1emtau.emIsol()),
+               int(l1emtau.eta()), int(l1emtau.phi())))
         # Q for xAOD devs & Joerg:
-        # - there is a factor of 2 between the RAW values and the xAOD ones (both
+        # - there is a factor of 2 between the RAW values and the xAOD ones (both et and iso). See Murrough's reply
         # - the type of l1emtau.isol() is 'str' why?
-        # - the RAW iso() seems to be 2*xAOD::emIsol()
         # Q for myself:
         # - try to figure out the int/float rounding issues (due to python? to xAOD conversion?)
 
 def skip_run_event(r, e):
     return (r!=287924
             or
-            e not in [178424911,178424911,178496695,178662528,178432898,178525775])
+            # e not in [178424911,178424911,178496695,178662528,178432898,178525775])
+            e not in [179267745,
+                      178609710,
+                      179068229,
+                      179349526,
+                      178451063,
+                      178654773,
+                      179043079,
+                      179045192,
+                      179181174,
+                      178603830,
+                      178757824,
+                      178425794,
+                      178491065,
+                      178830339,
+                      178538191,
+                      178421638,
+                      178400125,
+                      178542410,
+                      178466885,
+                      178502229,
+                      180871302,
+                      181043384,
+                      180887398,
+                      180933729,
+                      180663338,
+                      180784134,
+                      180817823,
+                      180846656,
+                      180673398,
+                      180987526,
+                      181006793])
+
 
 def l1muonroi2l1muon(l1muonroi):
     "make an l1mu with p4 to be stored as output"
