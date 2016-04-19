@@ -7,6 +7,7 @@
 #include "xAODTrigL1Calo/L1TopoRawData.h"
 #include "xAODTrigL1Calo/L1TopoRawDataContainer.h"
 #include "L1TopoRDO/BlockTypes.h"
+#include "L1TopoRDO/Fibre.h"
 #include "L1TopoRDO/Header.h"
 #include "L1TopoRDO/Helpers.h"
 #include "L1TopoRDO/Fibre.h"
@@ -18,6 +19,7 @@
 #include "TFile.h"
 #include "TH1F.h"
 
+#include <bitset>
 #include <iostream>
 #include <ios>
 
@@ -47,7 +49,7 @@ int main(int argc, char* argv[])
     event.readFrom(&chain); //, treeName.c_str());
 
     size_t nEntries = chain.GetEntries();
-    nEntries = 10;
+    nEntries = 20;
     for (size_t iEntry = 0; iEntry < nEntries; ++iEntry) {
         event.getEntry(iEntry);
         cout<<" entry "<<iEntry<<endl;
@@ -68,15 +70,45 @@ int main(int argc, char* argv[])
 
         const xAOD::L1TopoRawDataContainer *l1toporawdatas = nullptr;
         event.retrieve(l1toporawdatas, "L1TopoRawData");
-
-        // auto l1rd_it = l1toporawdatas->begin();
-        // auto l1rd_it_end = l1toporawdatas->end();
         int number_of_headers = 0;
         int number_of_l1topotob = 0;
-        // initialise header: beware, this can make a valid-looking header and be misinterpreted; set version 15, BCN -7, which is unlikely:
+        // initialise header: beware, this can make a valid-looking
+        // header and be misinterpreted; set version 15, BCN -7, which
+        // is unlikely:
         L1Topo::Header header(0xf,0,0,0,0,1,0x7);
-
+        static const unsigned int nTopoCTPOutputs = 128; //! Number of CTP outputs
+        std::bitset<nTopoCTPOutputs> triggerBits; //! trigger bits sent to CTP
+        std::bitset<nTopoCTPOutputs> overflowBits; //! overflow bits corresponding to CTP output
+        struct {
+            bool operator()(const unsigned int v) {
+                const std::vector<unsigned int> l1TopoDaqRobIds = {0x00910000, 0x00910010, 0x00910020};
+                return std::find(l1TopoDaqRobIds.begin(), l1TopoDaqRobIds.end(), v)!= l1TopoDaqRobIds.end();
+            }
+        } isL1topoDaqRobId;
+        // first loop: just count the words
+        unsigned int nl1topowords = 0;
         for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
+            for(auto &word : l1topo->dataWords()){
+                if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
+                    nl1topowords++;
+            }
+        }
+        // second loop: just print out the words
+        cout<<"L1Topo data words: "<<nl1topowords<<endl;
+        for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
+            for(auto &word : l1topo->dataWords()){
+                if(L1Topo::BlockTypes::L1TOPO_TOB==L1Topo::blockType(word))
+                    cout<<L1Topo::formatHex8(word)<<" (sourceId: "<<L1Topo::formatHex8(l1topo->sourceID())<<")"<<endl;
+            }
+        }
+        int previousBunchNumber = 0;
+        for(auto &l1topo : *l1toporawdatas) {
+            if(not isL1topoDaqRobId(l1topo->sourceID()))
+                continue;
             cout<<"l1topo.sourceID "<<std::hex<<l1topo->sourceID() <<std::dec<<endl;
             for(auto word : l1topo->dataWords()){
                 const L1Topo::BlockTypes blockType = L1Topo::blockType(word);
@@ -112,6 +144,7 @@ int main(int argc, char* argv[])
                         continue;
                     }
                     auto tob = L1Topo::L1TopoTOB(word);
+                    cout<<"dataword 0x"<<std::hex<<word<<std::dec<<endl;
                     cout<<tob<<endl;
                     cout<<"DG L1Topo::L1TopoTOB "<<std::hex<<word<<std::dec<<endl;
                     number_of_l1topotob +=1;
@@ -147,8 +180,5 @@ int main(int argc, char* argv[])
 
         // }
 
-
-
     } // for iEntry
-
 }
